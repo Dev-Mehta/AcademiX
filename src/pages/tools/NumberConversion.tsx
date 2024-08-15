@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 const NumberConversion = () => {
     const [number, setNumber] = useState('');
