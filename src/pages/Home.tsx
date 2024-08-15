@@ -8,6 +8,7 @@ const Home = () => {
             <p className="">Currently at <a href="/tools" className="underline">AcademiX</a>, you can use the following tools:</p>
             <ul className="list-disc ml-8">
                 <li><a href="https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm">:Booth's Multiplication Algorithm</a> - <a className="text-indigo-800 underline" href="/tools/booths-algorithm">Link</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Binary_number#Conversion_to_and_from_other_numeral_systems">:Number Conversion</a> - <a className="text-indigo-800 underline" href="/tools/number-conversion">Link</a></li>
             </ul>
         </div>
     )

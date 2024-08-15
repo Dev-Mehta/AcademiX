@@ -18,6 +18,7 @@ const App = () => {
           <Route path='/learn-x' element={<LearnX />} />
           <Route path="/tools/booths-algorithm" element={<BoothsAlgorithm />} />
           <Route path="/tools/number-conversion" element={<NumberConversion />} />
+          <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
       </Router>
     </>
