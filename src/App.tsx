@@ -4,11 +4,8 @@ import Home from "./pages/Home"
 import LearnX from "./pages/LearnX"
 import Tools from "./pages/Tools"
 import BoothsAlgorithm from "./pages/tools/BoothsAlgorithm"
-import { useEffect } from "react"
+
 const App = () => {
-  useEffect(() => {
-    Nutshell.start()
-  }, [])
   return (
     <>
       <Router>

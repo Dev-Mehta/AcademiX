@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FormEvent, useEffect, useState } from 'react'
 
 const BoothsAlgorithm = () => {
     const [result, setResult] = useState<any[]>([]);
     const [num1Bin, setNum1Bin] = useState<string>('');
     const [num2Bin, setNum2Bin] = useState<string>('');
-    const [overflow, setOverflow] = useState<boolean>(false);
-
+    
     const addBinary = (a: string, b: string) => {
         let sum = '';
         let carry = 0;
@@ -114,7 +114,6 @@ const BoothsAlgorithm = () => {
                 Multiplicand: <input type='number' placeholder='Enter the multiplicand' onChange={handleNum1Bin} className='border p-2 rounded-md' />
                 Multiplier: <input type='number' placeholder='Enter the multiplier' onChange={handleNum2Bin} className='border p-2 rounded-md' />
             </form>
-            {overflow && <p className='text-red-500'>Incorrect results as number is out of range</p>}
             <table className='table-auto border-collapse font-mono my-4 border border-slate-400'>
                 <thead>
                     <tr>
