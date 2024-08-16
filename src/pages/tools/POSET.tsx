@@ -94,6 +94,7 @@ const POSET = () => {
                 <div id="graph">
                     <ForceGraph2D 
                         width={document.body.clientWidth*0.9}
+                        height={100}
                         graphData={data}
                         nodeAutoColorBy={"group"}
                         enablePanInteraction={false}
