@@ -7,6 +7,7 @@ const Tools = () => {
                 <li><a className="text-indigo-800" href="/tools/booths-algorithm">Booth's Multiplication Algorithm</a> <a href="https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm">:Definition</a></li>
                 <li><a className="text-indigo-800" href="/tools/number-conversion">Number Conversion</a> <a href="https://en.wikipedia.org/wiki/Binary_number#Conversion_to_and_from_other_numeral_systems">:Conversion to and from other numeral systems</a></li>
                 <li><a className="text-indigo-800" href="/tools/binary-arithmetic">Simple Binary Arithmetic</a> <a href="https://en.wikipedia.org/wiki/Binary_number#Binary_arithmetic">:Definition</a></li>
+                <li><a className="text-indigo-800" href="/tools/poset">POSET</a> <a href="https://en.wikipedia.org/wiki/Partially_ordered_set">:Definition</a></li>
             </ul>
         </div>
     )

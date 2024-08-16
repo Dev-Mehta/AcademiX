@@ -107,8 +107,14 @@ const AdditionSubtraction = () => {
 
     return (
         <>
+            <div className='mt-4 ml-4'>
+                <p className='md:text-3xl prose'><a
+                href='https://en.wikipedia.org/wiki/Binary_number#Binary_arithmetic'
+                >:Binary Addition</a></p>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2">
-                <div className='m-2'>
+                <div className='m-4'>
                     <input type="number" onChange={handleChange1} placeholder='Enter number: ' className='border border-gray-400 rounded-md mt-2 p-2' />
                     <div className='mt-2'>
                         <p>{element1}</p>
@@ -116,7 +122,7 @@ const AdditionSubtraction = () => {
                         <p>Binary: {binary1}</p>
                     </div>
                 </div>
-                <div className="m-2">
+                <div className="m-4">
                     <input type="number" onChange={handleChange2} placeholder='Enter number: ' className='border border-gray-400 rounded-md mt-2 p-2' />
                     <div className='mt-2'>
                         <p>{element2}</p>
@@ -127,9 +133,8 @@ const AdditionSubtraction = () => {
             </div>
 
             <div className='m-4'>
-                <h1>Result</h1>
+                <p className='text-2xl font-bold my-3'>Result</p>
                 <p>Decimal: {number1 + number2}</p>
-                <p>Binary: {parseInt(binary1, 2) + parseInt(binary2, 2)}</p>
                 <table className='font-mono'>
                     <tbody>
                         <tr>

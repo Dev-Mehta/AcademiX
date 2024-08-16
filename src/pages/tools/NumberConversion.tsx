@@ -48,19 +48,19 @@ const NumberConversion = () => {
             <div className="font-mono">
                 <p className="my-2">
                     <label>Dec:&nbsp;</label>
-                    <input type="number" value={number} onChange={handleNumberChange} className="border border-gray-300 p-2 rounded-lg w-1/4" />
+                    <input type="number" value={number} onChange={handleNumberChange} className="border border-gray-300 p-2 rounded-lg " />
                 </p>
                 <p className="my-2">
                     <label>Bin:&nbsp;</label>
-                    <input type="number" value={binary} onChange={handleBinaryChange} className="border border-gray-300 p-2 rounded-lg w-1/4" />
+                    <input type="number" value={binary} onChange={handleBinaryChange} className="border border-gray-300 p-2 rounded-lg " />
                 </p>
                 <p className="my-2">
                     <label>Oct:&nbsp;</label>
-                    <input type="number" value={octal} className="border border-gray-300 p-2 rounded-lg w-1/4" onChange={handleOctalNumber} />
+                    <input type="number" value={octal} className="border border-gray-300 p-2 rounded-lg " onChange={handleOctalNumber} />
                 </p>
                 <p>
                     <label>Hex: </label>
-                    <input type="text" value={hexadecimal.toUpperCase()} className="border border-gray-300 p-2 rounded-lg w-1/4" onChange={handleHexadecimalChange} />
+                    <input type="text" value={hexadecimal.toUpperCase()} className="border border-gray-300 p-2 rounded-lg " onChange={handleHexadecimalChange} />
                 </p>
             </div>
         </div>
