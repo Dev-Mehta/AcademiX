@@ -5,6 +5,7 @@ import LearnX from "./pages/LearnX"
 import Tools from "./pages/Tools"
 import BoothsAlgorithm from "./pages/tools/BoothsAlgorithm"
 import NumberConversion from "./pages/tools/NumberConversion"
+import AdditionSubtraction from "./pages/tools/AdditionSubtraction"
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
           <Route path='/learn-x' element={<LearnX />} />
           <Route path="/tools/booths-algorithm" element={<BoothsAlgorithm />} />
           <Route path="/tools/number-conversion" element={<NumberConversion />} />
+          <Route path="/tools/binary-arithmetic" element={<AdditionSubtraction/>} />
           <Route path="*" element={<h1>404 Not Found</h1>} />
         </Routes>
       </Router>

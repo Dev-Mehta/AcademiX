@@ -1,32 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FormEvent, useEffect, useState } from 'react'
 
+const addBinary = (a: string, b: string) => {
+    let sum = '';
+    let carry = 0;
+    for (let i = a.length - 1; i >= 0; i--) {
+        const bitA = a[i];
+        const bitB = b[i];
+        const bitSum = parseInt(bitA) + parseInt(bitB) + carry;
+        sum = (bitSum % 2) + sum;
+        carry = Math.floor(bitSum / 2);
+    }
+    return sum;
+}
+
+const negate = (num: string) => {
+    let neg = '';
+    for (let i = 0; i < num.length; i++) {
+        neg += num[i] === '0' ? '1' : '0';
+    }
+    return addBinary(neg, '0'.repeat(num.length-1) + '1');
+}
+
 const BoothsAlgorithm = () => {
     const [result, setResult] = useState<any[]>([]);
     const [num1Bin, setNum1Bin] = useState<string>('');
     const [num2Bin, setNum2Bin] = useState<string>('');
     
-    const addBinary = (a: string, b: string) => {
-        let sum = '';
-        let carry = 0;
-        for (let i = a.length - 1; i >= 0; i--) {
-            const bitA = a[i];
-            const bitB = b[i];
-            const bitSum = parseInt(bitA) + parseInt(bitB) + carry;
-            sum = (bitSum % 2) + sum;
-            carry = Math.floor(bitSum / 2);
-        }
-        return sum;
-    }
-
-    const negate = (num: string) => {
-        let neg = '';
-        for (let i = 0; i < num.length; i++) {
-            neg += num[i] === '0' ? '1' : '0';
-        }
-        return addBinary(neg, '0'.repeat(num.length-1) + '1');
-    }
-
     const shiftRight = (ac: string, qr: string, q_1: string) => {
         // arithmetic shift right
         const shifted = ac[0] + ac + qr + q_1;
@@ -140,3 +140,4 @@ const BoothsAlgorithm = () => {
 }
 
 export default BoothsAlgorithm;
+export  { addBinary, negate };
