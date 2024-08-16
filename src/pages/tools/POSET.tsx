@@ -96,6 +96,10 @@ const POSET = () => {
                         width={document.body.clientWidth*0.9}
                         graphData={data}
                         nodeAutoColorBy={"group"}
+                        enablePanInteraction={false}
+                        minZoom={2.5}
+                        enableZoomInteraction={false}
+                        yOffset={0.1}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
                             const fontSize = 12 / globalScale;
@@ -103,12 +107,12 @@ const POSET = () => {
                             const textWidth = ctx.measureText(String(label ?? '')).width;
                             const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
 
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                            ctx.fillStyle = 'rgba(255, 255, 255, 1)';
                             ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
 
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillStyle = node.color;
+                            ctx.fillStyle = '#000';
                             ctx.fillText(String(label), node.x ?? 0, (node.y ?? 0));
 
                             node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
@@ -119,6 +123,7 @@ const POSET = () => {
                             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
                             bckgDimensions && ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
                         }}
+                        linkColor={() => 'rgba(0, 0, 0, 1)'}
                     />
                 </div>
             </div>
