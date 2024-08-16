@@ -99,7 +99,6 @@ const POSET = () => {
                         enablePanInteraction={false}
                         minZoom={2.5}
                         enableZoomInteraction={false}
-                        yOffset={0.1}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
                             const fontSize = 12 / globalScale;
