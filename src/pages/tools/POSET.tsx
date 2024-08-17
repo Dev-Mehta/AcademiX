@@ -97,7 +97,7 @@ const POSET = () => {
                         height={700}
                         graphData={data}
                         nodeAutoColorBy={"group"}
-                        minZoom={1.5}
+                        minZoom={0.5}
                         enableZoomInteraction={true}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
