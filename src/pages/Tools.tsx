@@ -8,6 +8,7 @@ const Tools = () => {
                 <li><a className="text-indigo-800" href="/tools/number-conversion">Number Conversion</a> <a href="https://en.wikipedia.org/wiki/Binary_number#Conversion_to_and_from_other_numeral_systems">:Conversion to and from other numeral systems</a></li>
                 <li><a className="text-indigo-800" href="/tools/binary-arithmetic">Simple Binary Arithmetic</a> <a href="https://en.wikipedia.org/wiki/Binary_number#Binary_arithmetic">:Definition</a></li>
                 <li><a className="text-indigo-800" href="/tools/poset">POSET</a> <a href="https://en.wikipedia.org/wiki/Partially_ordered_set">:Definition</a></li>
+                <li><a className="text-indigo-800" href="/tools/eulerian-path">Eulerian Path</a> <a href="https://en.wikipedia.org/wiki/Eulerian_path">:Definition</a></li>
             </ul>
         </div>
     )

@@ -1,9 +1,19 @@
+/* eslint-disable no-constant-binary-expression */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { ForceGraph2D } from "react-force-graph"
 const POSET = () => {
     const [set, setSet] = useState<number[]>([]);
+    const [isLattice, setIsLattice] = useState<boolean>(false);
     const [number, setNumber] = useState<number>(0);
+    const isSquareFree = (n: number) => {
+        for (let i = 2; i * i <= n; i++) {
+            if (n % (i * i) === 0) {
+                return false;
+            }
+        }
+        return true;
+    }
     const generateDivisors = (n: number) => {
         const divisors = [];
         for (let i = 1; i <= n; i++) {
@@ -39,34 +49,33 @@ const POSET = () => {
             ), 1);
             // remove transitive edges
             const edgeToDel: any[][] = [];
-            for(let a = 0; a < edges.length; a++) {
-                for(let b = 0; b < edges.length; b++) {
-                    if(edges[a][1] === edges[b][0]) {
-                        console.log(edges[a], edges[b]);
+            for (let a = 0; a < edges.length; a++) {
+                for (let b = 0; b < edges.length; b++) {
+                    if (edges[a][1] === edges[b][0]) {
                         edgeToDel.push([edges[a][0], edges[b][1]]);
                     }
                 }
             }
-            console.log(edgeToDel);
             edges = edges.filter(([a, b]) => !edgeToDel.some(([c, d]) => a === c && b === d));
-
-            console.log(edges)
         }
         const nodes = set.map((i) => ({ id: i, group: 1 }));
         const links = edges.map(([source, target]) => ({ source, target }));
+        const isLattice = edges.every(([a, b]) => edges.some(([c, d]) => a === c && b === d));
+        setIsLattice(isLattice);
+        
         setData({ nodes, links });
         return edges;
     }
     const handleChange = (e: { target: { value: any; }; }) => {
         const value = e.target.value;
-        if(value.trim() === '') return;
+        if (value.trim() === '') return;
         const n = parseInt(value);
         setNumber(n);
         const divisors = generateDivisors(n);
         setSet(divisors);
         hasse(divisors);
     }
-    
+
     return (
         <div className="m-4">
             <h1 className="text-3xl font-bold">POSET</h1>
@@ -89,11 +98,17 @@ const POSET = () => {
             <input type="number" onChange={handleChange} placeholder="Enter the number" className="border border-gray-300 p-2 rounded-lg" />
             {set.length > 0 && <div className="my-2">
                 <p>Divisor Set for {number}: {set.join(', ')}</p>
+                {isSquareFree(number) && <p>The number {number} is <span className="prose"><a className="" href="https://en.wikipedia.org/wiki/Square-free_integer" onLoad={(window as any).Nutshell.start()}>:Square-Free</a></span> It has {set.length} divisors. Thus it's graph is isomorphic to Q<sub>{Math.log2(set.length)}</sub> hypercube graph</p>}
+                {isLattice && <p>Given set is <span className="prose"><a className="" href="https://en.wikipedia.org/wiki/Lattice_(order)" onLoad={(window as any).Nutshell.start()}>:Lattice</a></span></p>}
+
+
+                <p>Hasse Diagram for {number}</p>
+                <p className="text-sm">Note: You'll need to drag the maximum element to the top of the diagram. We are working on fixing this issue.</p>
             </div>}
             <div className="flex flex-col gap-4">
                 <div id="graph">
-                    <ForceGraph2D 
-                        width={document.body.clientWidth*0.9}
+                    <ForceGraph2D
+                        width={document.body.clientWidth * 0.9}
                         height={700}
                         graphData={data}
                         nodeAutoColorBy={"group"}
@@ -101,6 +116,7 @@ const POSET = () => {
                         enableZoomInteraction={true}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
+                            // set y position based on divisor position
                             const fontSize = 12 / globalScale;
                             ctx.font = `${fontSize}px Sans-Serif`;
                             const textWidth = ctx.measureText(String(label ?? '')).width;
