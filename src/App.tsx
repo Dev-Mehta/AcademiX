@@ -1,5 +1,5 @@
 import Navbar from "./Navbar"
-import { BrowserRouter as Router, Route, Routes, useParams, redirect } from "react-router-dom"
+import { BrowserRouter as Router, Route, Routes, useParams } from "react-router-dom"
 import Home from "./pages/Home"
 import LearnX from "./pages/LearnX"
 import Tools from "./pages/Tools"
