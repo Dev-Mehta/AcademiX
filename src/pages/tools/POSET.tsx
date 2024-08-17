@@ -97,9 +97,8 @@ const POSET = () => {
                         height={700}
                         graphData={data}
                         nodeAutoColorBy={"group"}
-                        enablePanInteraction={false}
-                        minZoom={2.5}
-                        enableZoomInteraction={false}
+                        minZoom={1.5}
+                        enableZoomInteraction={true}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
                             const fontSize = 12 / globalScale;
