@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
 import { FormEvent, useEffect, useState } from 'react';
 
 const subtractBinary = (a: string, b: string) => {
