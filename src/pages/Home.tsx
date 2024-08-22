@@ -17,6 +17,7 @@ const Home = () => {
                 <li><a href="https://en.wikipedia.org/wiki/Binary_number#Binary_arithmetic">:Binary Arithmetic</a> - <a className="text-indigo-800 underline" href="/tools/binary-arithmetic">Link</a></li>
                 <li><a href="https://en.wikipedia.org/wiki/Partially_ordered_set">:POSET</a> - <a className="text-indigo-800 underline" href="/tools/poset">Link</a></li>
                 <li><a href="https://en.wikipedia.org/wiki/Eulerian_path">:Eulerian Path</a> - <a className="text-indigo-800 underline" href="/tools/eulerian-path">Link</a></li>
+                <li><a className="text-indigo-800" href="/tools/division-algorithm">Booth's Divison Algorithm</a> <a href="https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division">:Definition</a></li>
             </ul>
         </div>
     )
