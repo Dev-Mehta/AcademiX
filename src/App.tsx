@@ -9,7 +9,7 @@ import AdditionSubtraction from "./pages/tools/AdditionSubtraction"
 import POSET from "./pages/tools/POSET"
 import EulerianPath from "./pages/tools/EulerianPath"
 import SetTheory from "./posts/SetTheory"
-
+import BoothsDivisionAlgorithm from "./pages/tools/BoothsDiv"
 
 const App = () => {
   const FindTopic = () => {
@@ -34,6 +34,7 @@ const App = () => {
           <Route path="/tools/eulerian-path" element={<EulerianPath/>} />
           <Route path="*" element={<h1>404 Not Found</h1>} />
           <Route path="/why-do-we-learn/:topic" element={<FindTopic />} />
+          <Route path="/tools/division-algorithm" element={<BoothsDivisionAlgorithm />} />
         </Routes>
       </Router>
     </>
