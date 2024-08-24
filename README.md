@@ -1,50 +1,55 @@
-# React + TypeScript + Vite
+# Academix
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Academix is an attempt to make computer science topics more interactive and easy to understand. You might be sitting in your discrete mathematics class and wondering why do we study this topic? Nobody uses set theory in real life, right? And you would be totally correct[*]
 
-Currently, two official plugins are available:
+[*] - We might not use set theory or for the matter any topic like we do in an academic setting. We would be using these topics intutively and unknowingly in our day to day life.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+We, at academix have just one little goal - we want you to think of the nitty gritty details of a computer science subject not as a means to pass an exam and get a bachelors degree, but as a tool in your toolbox that you can use to solve real world problems.
 
-## Expanding the ESLint configuration
+## Tools by Academix
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- [Booth's Multiplication Algorithm](https://academixdemo.netlify.app/tools/booths-algorithm)
+- [Number Conversion](https://academixdemo.netlify.app/tools/number-conversion)
+- [Binary Addition](https://academixdemo.netlify.app/tools/binary-arithmetic)
+- [POSET](https://academixdemo.netlify.app/tools/poset)
+- [Eulerian Path](https://academixdemo.netlify.app/tools/eulerian-path)
+- [Booth's Division Algorithm](https://academixdemo.netlify.app/tools/division-algorithm)
 
-- Configure the top-level `parserOptions` property like this:
+- ...It is a work in progress. We are constantly adding new tools and content to make your learning experience better.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Contributing
+
+We are always looking for contributors to help us improve the content and tools. For developing locally, follow the steps below:
+
+1. Clone the repository
+```bash
+git clone https://github.com/Dev-Mehta/Academix.git
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+2. Install the dependencies
+```bash
+pnpm install
 ```
+
+- We use [pnpm](https://pnpm.io/) as our package manager. You can install it using the following command:
+```bash
+npm install -g pnpm
+```
+
+3. Start the development server
+```bash
+pnpm run dev
+```
+
+## Future Plans
+
+- [ ] Add more tools
+- [ ] Add more content
+- [ ] Add interactive examples
+- [ ] Add more future plans
+
+## Contributors
+
+<a href = "https://github.com/Dev-Mehta/Academix/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo=Dev-Mehta/Academix"/>
+</a>
