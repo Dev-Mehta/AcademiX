@@ -9,7 +9,7 @@ const Home = () => {
                 <p className="my-2">We, at academix have just one little goal - we want you to think of the nitty gritty details of a computer science subject not as a means to pass an exam and get a bachelors degree, but as a tool in your toolbox that you can use to solve real world problems.</p>
                 <p className=""><a href="/" className="underline">AcademiX</a> is a place where you can interlink computer science topics and get an idea of why we study a topic x in our bachelors degree.</p>
             </div>
-            <h1 className="md:text-2xl mt-4">Use tools by AcademiX</h1>
+            <p className="md:text-2xl mt-4">Use tools by AcademiX</p>
             <p className="">Currently at <a href="/tools" className="underline">AcademiX</a>, you can use the following tools:</p>
             <ul className="list-disc ml-8">
                 <li><a href="https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm">:Booth's Multiplication Algorithm</a> - <a className="text-indigo-800 underline" href="/tools/booths-algorithm">Link</a></li>
@@ -17,7 +17,8 @@ const Home = () => {
                 <li><a href="https://en.wikipedia.org/wiki/Binary_number#Binary_arithmetic">:Binary Arithmetic</a> - <a className="text-indigo-800 underline" href="/tools/binary-arithmetic">Link</a></li>
                 <li><a href="https://en.wikipedia.org/wiki/Partially_ordered_set">:POSET</a> - <a className="text-indigo-800 underline" href="/tools/poset">Link</a></li>
                 <li><a href="https://en.wikipedia.org/wiki/Eulerian_path">:Eulerian Path</a> - <a className="text-indigo-800 underline" href="/tools/eulerian-path">Link</a></li>
-                <li><a className="text-indigo-800" href="/tools/division-algorithm">Booth's Divison Algorithm</a> <a href="https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division">:Definition</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division">:Booth's Division Algorithm</a> - <a className="text-indigo-800 underline" href="/tools/division-algorithm">Link</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm">:Floyd-Warshall Algorithm</a> - <a className="text-indigo-800 underline" href="/tools/warshall-algorithm">Link</a></li>
             </ul>
         </div>
     )
