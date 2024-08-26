@@ -158,7 +158,7 @@ const WarshallAlgorithm = () => {
                                 <table className="border border-collapse my-2">
                                     <tbody>
                                         <tr className="border">
-                                            <th className="p-2 border">-</th> {/* Empty cell */}
+                                            <th className="p-2 border">&nbsp;</th> {/* Empty cell */}
                                             {iteration[0].map((_, j) => (
                                                 <th key={`header-${j}`} className="border p-2">{j + 1}</th>
                                             ))}
@@ -187,7 +187,7 @@ const WarshallAlgorithm = () => {
                         <table className="border border-collapse">
                             <tbody>
                                 <tr>
-                                    <th className="border p-2">-</th> {/* Empty cell */}
+                                    <th className="border p-2">&nbsp;</th> {/* Empty cell */}
                                     {distances[0].map((_, j) => (
                                         <th key={`final-header-${j}`} className="border p-2">{j + 1}</th>
                                     ))}
