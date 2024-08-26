@@ -10,6 +10,7 @@ const Tools = () => {
                 <li><a className="text-indigo-800" href="/tools/poset">POSET</a> <a href="https://en.wikipedia.org/wiki/Partially_ordered_set">:Definition</a></li>
                 <li><a className="text-indigo-800" href="/tools/eulerian-path">Eulerian Path</a> <a href="https://en.wikipedia.org/wiki/Eulerian_path">:Definition</a></li>
                 <li><a className="text-indigo-800" href="/tools/division-algorithm">Booth's Divison Algorithm</a> <a href="https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division">:Definition</a></li>
+                <li><a className="text-indigo-800" href="/tools/warshall-algorithm">Floyd-Warshall Algorithm</a> <a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm">:Definition</a></li>
             </ul>
         </div>
     )

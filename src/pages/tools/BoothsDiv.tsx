@@ -23,46 +23,43 @@ const negate = (num: string) => {
     for (let i = 0; i < num.length; i++) {
         neg += num[i] === '0' ? '1' : '0';
     }
-    return addBinary(neg, '0'.repeat(num.length-1) + '1');
+    return addBinary(neg, '0'.repeat(num.length - 1) + '1');
 };
 
 const BoothsDivisionAlgorithm = () => {
     const [result, setResult] = useState<any[]>([]);
     const [num1Bin, setNum1Bin] = useState<string>('');
     const [num2Bin, setNum2Bin] = useState<string>('');
-    const [remainder,setRemainder] = useState<string>('');
+    const [remainder, setRemainder] = useState<string>('');
     const [quotient, setQuotient] = useState<string>('');
     const [opr, setOpr] = useState<boolean>(false);
-    
+    const [steps, setSteps] = useState<any[]>([]);
     const shiftLeft = (ac: string, qr: string) => {
-        return ac.substring(1) + qr.charAt(0) 
+        return ac.substring(1) + qr.charAt(0)
     };
 
     const boothDivisionAlgorithm = (num1: string, num2: string) => {
-
-        
-
         const steps: any = [];
         let ac = '0'.repeat(num1.length);
         let qr = num1;
         const negM = num2
 
-        steps.push({num2 ,ac, qr, operation: 'Initial' });
+        steps.push({ num2, ac, qr, operation: 'Initial' });
 
         for (let i = 0; i < num1.length; i++) {
             ac = shiftLeft(ac, qr);
             qr = qr.substring(1) + '_';
-            steps.push({num2 ,ac, qr, operation: 'shift left' });
+            steps.push({ num2, ac, qr, operation: 'Shift Left' });
 
-            
+
 
             ac = subtractBinary(ac, negM);
-            steps.push({ num2,ac, qr, operation: 'Subtracted M' });
+            steps.push({ num2, ac, qr, operation: 'Subtracted M' });
 
             if (ac[0] === '1') {
                 qr = qr.substring(0, qr.length - 1) + '0';
                 ac = addBinary(ac, num2); // Restore ac
-                steps.push({ num2,ac, qr, operation: 'Restored AC' });
+                steps.push({ num2, ac, qr, operation: 'Restored AC' });
             } else {
                 qr = qr.substring(0, qr.length - 1) + '1';
                 // steps.push({ num2,ac, qr, operation: 'Subtracted M' });
@@ -73,31 +70,32 @@ const BoothsDivisionAlgorithm = () => {
         setQuotient(qr)
         setOpr(true)
 
-        steps.push({ num2 , ac,qr , operation: 'Result' });
+        steps.push({ num2, ac, qr, operation: 'Result' });
         return steps;
     };
 
     useEffect(() => {
-        if(num1Bin.trim() === '' || num2Bin.trim() === '') return;
-    //     let new_num2 ='0'.repeat(num1Bin.length-num2Bin.length)+num2Bin
-    // setNum2Bin(new_num2)
-    console.log(parseInt(parseInt(num1Bin, 2).toString(10)))
-    
+        if (num1Bin.trim() === '' || num2Bin.trim() === '') return;
+        //     let new_num2 ='0'.repeat(num1Bin.length-num2Bin.length)+num2Bin
+        // setNum2Bin(new_num2)
+        console.log(parseInt(parseInt(num1Bin, 2).toString(10)))
+
         const r = boothDivisionAlgorithm(num1Bin, num2Bin);
-        setResult(r);
+        setSteps(r);
+        setResult([r[0]]);
     }, [num1Bin, num2Bin]);
 
     const numToBin = (num: string) => {
-        if(num.trim() === '' || num.trim() === '-') return '';
+        if (num.trim() === '' || num.trim() === '-') return '';
         num = num.trim();
         const numBin = parseInt(num, 10).toString(2);
-        
-        if(numBin.charAt(0) === '-' && numBin !== '-') {
+
+        if (numBin.charAt(0) === '-' && numBin !== '-') {
             let pos = numBin.substring(1);
-            if(pos.length < 8){
+            if (pos.length < 8) {
                 pos = '0'.repeat(8 - pos.length) + pos;
             }
-            const comp =  negate(pos);
+            const comp = negate(pos);
             return comp;
         }
         if (numBin.length < 8) {
@@ -112,22 +110,43 @@ const BoothsDivisionAlgorithm = () => {
     const handleNum2Bin = (e: FormEvent<HTMLInputElement>) => {
         setNum2Bin(numToBin(e.currentTarget.value));
     };
-
+    const showNext = () => {
+        if (result.length === steps.length) return;
+        setResult([...result, steps[result.length]]);
+    };
+    const clearEverything = () => {
+        setNum1Bin('');
+        setNum2Bin('');
+        setResult([]);
+        setSteps([]);
+        setRemainder('');
+        setQuotient('');
+        setOpr(false);
+    };
+    const autoShowNext = () => {
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i === steps.length) {
+                clearInterval(interval);
+                return;
+            }
+            setResult(steps.slice(0, i + 1));
+            i++;
+        }, 1000);
+    }
     return (<>
         <div className='m-4'>
             <p className='text-3xl my-4 font-extrabold'>Booth's Division Algorithm</p>
             <p className='text-xl prose'><a href="https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division">:What is Booth's Division Algorithm</a></p>
             <p className='my-4 text-2xl font-bold border-b-2 border-b-indigo-400 w-28'>Calculator</p>
             <form className='flex flex-col gap-2 w-96'>
-                Dividend: <input type='number' placeholder='Enter the dividend' onChange={handleNum1Bin}  className='border p-2 rounded-md' />
-                Divisor: <input type='number' placeholder='Enter the divisor' onChange={handleNum2Bin}  className='border p-2 rounded-md' />
+                Dividend: <input value={parseInt(num1Bin, 2)} type='number' placeholder='Enter the dividend' onChange={handleNum1Bin} className='border p-2 rounded-md' />
+                Divisor: <input value={parseInt(num2Bin,2)} type='number' placeholder='Enter the divisor' onChange={handleNum2Bin} className='border p-2 rounded-md' />
             </form>
-            <p>{num1Bin}</p>
-            <p>{num2Bin}</p>
             <table className='table-auto border-collapse font-mono my-4 border border-slate-400'>
                 <thead>
                     <tr>
-                    <th className="px-2 border border-slate-400">Divisor</th>
+                        <th className="px-2 border border-slate-400">Divisor</th>
                         <th className="px-2 border border-slate-400">Accumulator</th>
                         <th className="px-2 border border-slate-400">Quotient</th>
                         <th className="px-2 border border-slate-400">Operation</th>
@@ -145,14 +164,23 @@ const BoothsDivisionAlgorithm = () => {
                 </tbody>
             </table>
             {opr && (
-    <>
-        <p>The remainder is: {remainder} which is: {parseInt(remainder, 2).toString(10)}</p>
-        <p>The quotient is: {quotient} which is: {parseInt(quotient, 2).toString(10)}</p>
-    </>
-)}
- 
+                <>
+                    <p>The remainder is: {remainder} which is: {parseInt(remainder, 2).toString(10)}</p>
+                    <p>The quotient is: {quotient} which is: {parseInt(quotient, 2).toString(10)}</p>
+                </>
+            )}
+            <div className='flex gap-2'>
+                {result.length > 0 &&
+                    <>
+                        <button onClick={() => clearEverything()} className='bg-blue-500 text-white px-4 py-2 rounded-md'>Clear</button>
+                        <button onClick={() => showNext()} className='bg-green-500 text-white px-4 py-2 rounded-md'>Next</button>
+                        <button onClick={() => setResult(steps)} className='bg-red-500 text-white px-4 py-2 rounded-md'>Show All</button>
+                        <button onClick={() => autoShowNext()} className='bg-yellow-500 text-white px-4 py-2 rounded-md'>Animate</button>
+                    </>
+                }
+            </div>
         </div>
-        </>
+    </>
     );
 };
 
