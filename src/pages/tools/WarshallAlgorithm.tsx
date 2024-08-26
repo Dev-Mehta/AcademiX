@@ -179,10 +179,6 @@ const WarshallAlgorithm = () => {
                                 </table>
                             </div>
                         ))}
-
-
-
-
                         <i>Final Shortest Path Matrix</i>
                         <table className="border border-collapse">
                             <tbody>
@@ -222,9 +218,9 @@ const WarshallAlgorithm = () => {
                 { showResults && (
                     <ForceGraph2D
                         graphData={{
-                            nodes: Array.from({ length: vertices }, (_, i) => ({ id: i })),
+                            nodes: Array.from({ length: vertices }).map((_, i) => ({ id: i + 1 })), // Create nodes: 0, 1, 2, ..., n-1
                             links: graph
-                                .map((row, i) => row.map((value, j) => ({ source: i, target: j, value })))
+                                .map((row, i) => row.map((value, j) => ({ source: i + 1, target: j + 1, value })))
                                 .flat()
                                 .filter(link => link.value !== Infinity)
                             
@@ -232,7 +228,11 @@ const WarshallAlgorithm = () => {
                         linkWidth={2}
                         linkDirectionalArrowLength={3.5}
                         linkDirectionalArrowRelPos={1}
-                        width={document.documentElement.clientWidth - (outputRef.current?.clientWidth ?? 0) - 100}
+                        enableNodeDrag={true}
+                        enablePanInteraction={false}
+                        enableZoomInteraction={false}
+
+                        width={document.documentElement.clientWidth < 768 ? document.documentElement.clientWidth*0.9 : document.documentElement.clientWidth - (outputRef.current?.clientWidth ?? 0) - 100}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
                             const fontSize = 12 / globalScale;
