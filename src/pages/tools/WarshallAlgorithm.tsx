@@ -11,7 +11,11 @@ const WarshallAlgorithm = () => {
 
     const handleVerticesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const v = parseInt(e.target.value);
+        if(isNaN(v)){
+            setVertices(0);
+        }
         if (!isNaN(v) && v > 0) {
+            if(v > 10) {alert("Enter a number <= 10"); return;}
             setVertices(v);
             setGraph(Array(v).fill(null).map(() => Array(v).fill(0)));
         }
@@ -121,7 +125,8 @@ const WarshallAlgorithm = () => {
                         type="number"
                         value={vertices}
                         onChange={handleVerticesChange}
-                        min="1"
+                        min={1}
+                        max={10}
                     />
                 </div>
 
@@ -131,13 +136,23 @@ const WarshallAlgorithm = () => {
                         {graph.map((row, i) => (
                             <div key={i}>
                                 {row.map((value, j) => (
+                                    i == j ? 
+                                    <input
+                                        className="border rounded-md p-1"
+                                        key={j}
+                                        type="text"
+                                        value={0}
+                                        readOnly={true}
+                                        style={{ width: '50px', margin: '2px', border: '2px solid #aaa' }}
+
+                                    /> : 
                                     <input
                                         className="border rounded-md p-1"
                                         key={j}
                                         type="text"
                                         value={value === Infinity ? 'inf' : value}
                                         onChange={(e) => handleGraphChange(i, j, e.target.value)}
-                                        style={{ width: '50px', margin: '2px' }}
+                                        style={{ width: '50px', margin: '2px', border: '2px solid black' }}
                                     />
                                 ))}
                             </div>
@@ -226,10 +241,10 @@ const WarshallAlgorithm = () => {
                             
                         }}
                         linkWidth={2}
-                        linkDirectionalArrowLength={3.5}
+                        linkDirectionalArrowLength={4.5}
                         linkDirectionalArrowRelPos={1}
                         enableNodeDrag={true}
-                        enablePanInteraction={false}
+                        enablePanInteraction={true}
                         enableZoomInteraction={false}
 
                         width={document.documentElement.clientWidth < 768 ? document.documentElement.clientWidth*0.9 : document.documentElement.clientWidth - (outputRef.current?.clientWidth ?? 0) - 100}
