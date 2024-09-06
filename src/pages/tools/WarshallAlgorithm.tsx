@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { ForceGraph2D } from "react-force-graph";
 
+
 const WarshallAlgorithm = () => {
     const [graph, setGraph] = useState<(number | string)[][]>([]);
     const [vertices, setVertices] = useState(0);
-    const [distances, setDistances] = useState<number[][]>([]);
+    const [errorMessage, setErrorMessage] = useState<string>("");
     const [paths, setPaths] = useState<{ from: number; to: number; path: string; distance: number; }[]>([]);
     const [showResults, setShowResults] = useState(false);
     const [iterations, setIterations] = useState<number[][][]>([]);
@@ -13,11 +14,17 @@ const WarshallAlgorithm = () => {
         const v = parseInt(e.target.value);
         if (isNaN(v)) {
             setVertices(0);
+            setErrorMessage("Please enter a valid number of vertices greater than 0."); 
+            return;
         }
         if (!isNaN(v) && v > 0) {
-            if (v > 10) { alert("Enter a number <= 10"); return; }
+            if (v > 10) { 
+                setErrorMessage("Please enter a number of vertices less than or equal to 10."); 
+                return;
+             }
             setVertices(v);
             setGraph(Array(v).fill(null).map(() => Array(v).fill('')));
+            setErrorMessage("")
         }
     };
 
@@ -72,9 +79,8 @@ const WarshallAlgorithm = () => {
             iterationSnapshots.push(dist.map(row => row.slice()));
         }
 
-        setDistances(dist);
         if (next !== null) {
-            calculatePaths(next, dist);
+            calculatePaths(next,dist);
         }
         setIterations(iterationSnapshots as number[][][]);
         setShowResults(true);
@@ -134,6 +140,10 @@ const WarshallAlgorithm = () => {
                         min={1}
                         max={10}
                     />
+
+                   {errorMessage && ( 
+                        <p className="text-red-500 mt-2">{errorMessage}</p>
+                    )}
                 </div>
 
                 {vertices > 0 && (
@@ -141,7 +151,7 @@ const WarshallAlgorithm = () => {
                         <p>Enter Adjacency Matrix (use 'inf' for infinity):</p>
                         {graph.map((row, i) => (
                             <div key={i}>
-                                {row.map((value, j) => (
+                                {row.map((_,j) => (
                                     i === j ? (
                                         <input
                                             className="border rounded-md p-1"
@@ -149,7 +159,7 @@ const WarshallAlgorithm = () => {
                                             type="text"
                                             value={0}
                                             readOnly={true}
-                                            style={{ width:'50px', margin: '3px', border: '2px solid #aaa' }}
+                                            style={{ width:'50px', margin: '2px', border: '2px solid #aaa' }}
                                         />
                                     ) : (
                                         <input
