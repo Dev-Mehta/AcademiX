@@ -14,14 +14,14 @@ const WarshallAlgorithm = () => {
         const v = parseInt(e.target.value);
         if (isNaN(v)) {
             setVertices(0);
-            setErrorMessage("Please enter a valid number of vertices greater than 0."); 
+            setErrorMessage("Please enter a valid number of vertices greater than 0.");
             return;
         }
         if (!isNaN(v) && v > 0) {
-            if (v > 10) { 
-                setErrorMessage("Please enter a number of vertices less than or equal to 10."); 
+            if (v > 10) {
+                setErrorMessage("Please enter a number of vertices less than or equal to 10.");
                 return;
-             }
+            }
             setVertices(v);
             setGraph(Array(v).fill(null).map(() => Array(v).fill('')));
             setErrorMessage("")
@@ -31,22 +31,55 @@ const WarshallAlgorithm = () => {
     const handleGraphChange = (row: number, col: number, value: string) => {
         const newGraph = [...graph];
         const trimmedValue = value.trim().toLowerCase();
-    
-        if (trimmedValue ==='') {
+        if (trimmedValue === '') {
             newGraph[row][col] = ''; // Allow clearing of values
-        } else if (trimmedValue ==='inf') {
+        } else if (trimmedValue === 'inf') {
             newGraph[row][col] = Infinity;
-        } else {
-            const numericValue = parseFloat(trimmedValue);
-            newGraph[row][col] = isNaN(numericValue) ? 'inf' : numericValue;
         }
-    
+        else {
+            const numericValue = parseFloat(trimmedValue);
+            //added
+            if (!isNaN(numericValue)) {
+                newGraph[row][col] = numericValue;
+            } else {
+                setErrorMessage("Invalid input! Only numeric values or 'inf' are allowed.");
+                return ;
+            }
+
+
+        }
+
         setGraph(newGraph);
+        setErrorMessage("");
     };
-    
+
+  //dipslay error message for invalid value or empty cell
+    const validateGraphInput = () => {
+        for (let i = 0; i < graph.length; i++) {
+            for (let j = 0; j < graph[i].length; j++) {
+
+
+                if (i !== j  && graph[i][j]=='') {
+                    setErrorMessage("All cells must be filled before running the algorithm.");
+                    return false;
+                }
+                
+                 if (i !== j && typeof graph[i][j] === 'string' && graph[i][j] !== 'inf' ) {
+                    setErrorMessage("Invalid input detected. Only 'inf' or a valid number is allowed.");
+                    return false;
+                }
+                
+            }
+        }
+        setErrorMessage("");
+        return true;
+    };
 
 
     const floydWarshall = () => {
+        if (!validateGraphInput()) {
+            return ;
+        }
         const dist = Array.from({ length: vertices }, () => Array(vertices).fill(Infinity));
         const next = Array.from({ length: vertices }, () => Array(vertices).fill(null));
 
@@ -80,7 +113,7 @@ const WarshallAlgorithm = () => {
         }
 
         if (next !== null) {
-            calculatePaths(next,dist);
+            calculatePaths(next, dist);
         }
         setIterations(iterationSnapshots as number[][][]);
         setShowResults(true);
@@ -141,7 +174,7 @@ const WarshallAlgorithm = () => {
                         max={10}
                     />
 
-                   {errorMessage && ( 
+                    {errorMessage && (
                         <p className="text-red-500 mt-2">{errorMessage}</p>
                     )}
                 </div>
@@ -151,7 +184,7 @@ const WarshallAlgorithm = () => {
                         <p>Enter Adjacency Matrix (use 'inf' for infinity):</p>
                         {graph.map((row, i) => (
                             <div key={i}>
-                                {row.map((_,j) => (
+                                {row.map((_, j) => (
                                     i === j ? (
                                         <input
                                             className="border rounded-md p-1"
@@ -159,7 +192,7 @@ const WarshallAlgorithm = () => {
                                             type="text"
                                             value={0}
                                             readOnly={true}
-                                            style={{ width:'50px', margin: '2px', border: '2px solid #aaa' }}
+                                            style={{ width: '50px', margin: '2px', border: '2px solid #aaa' }}
                                         />
                                     ) : (
                                         <input
@@ -172,9 +205,13 @@ const WarshallAlgorithm = () => {
                                     )
                                 ))}
 
+
                             </div>
+
                         ))}
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall}>
+
+
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall} disabled={!!errorMessage}>
                             Run Floyd-Warshall Algorithm
                         </button>
                     </div>
@@ -186,7 +223,7 @@ const WarshallAlgorithm = () => {
 
                         {iterations.map((iteration, index) => (
                             <div key={index}>
-                                 <i>{index === iterations.length - 1 ?  `Iteration ${index + 1} - Final Shortest Path Matrix` : `Iteration - ${index + 1}`}</i>
+                                <i>{index === iterations.length - 1 ? `Iteration ${index + 1} - Final Shortest Path Matrix` : `Iteration - ${index + 1}`}</i>
                                 <table className="border border-collapse my-2">
                                     <tbody>
                                         <tr className="border">
@@ -202,7 +239,7 @@ const WarshallAlgorithm = () => {
                                                     <td
                                                         className="border p-2 text-center"
                                                         key={`cell-${i}-${j}`}>
-                                                          {i === j ? '0' : value === Infinity ? 'inf' : value}
+                                                        {i === j ? '0' : value === Infinity ? 'inf' : value}
                                                     </td>
                                                 ))}
                                             </tr>
