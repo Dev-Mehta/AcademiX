@@ -11,12 +11,22 @@ import EulerianPath from "./pages/tools/EulerianPath"
 import SetTheory from "./posts/SetTheory"
 import BoothsDivisionAlgorithm from "./pages/tools/BoothsDiv"
 import WarshallAlgorithm from "./pages/tools/WarshallAlgorithm"
+import DiscreteMath from "./posts/DiscreteMath"
+
 const App = () => {
   const FindTopic = () => {
-    const {topic} = useParams();
-    if(topic === 'set-theory') {
+    const { topic } = useParams();
+    if (topic === 'set-theory') {
       return <SetTheory />
     }
+    if (topic === 'discrete-mathematics') {
+      return (
+        <>
+          <DiscreteMath />
+        </>
+      )
+    }
+    return <h1>404 Not Found</h1>
   }
   return (
     <>
@@ -29,9 +39,9 @@ const App = () => {
           <Route path='/learn-x' element={<LearnX />} />
           <Route path="/tools/booths-algorithm" element={<BoothsAlgorithm />} />
           <Route path="/tools/number-conversion" element={<NumberConversion />} />
-          <Route path="/tools/binary-arithmetic" element={<AdditionSubtraction/>} />
-          <Route path="/tools/poset" element={<POSET/>} />
-          <Route path="/tools/eulerian-path" element={<EulerianPath/>} />
+          <Route path="/tools/binary-arithmetic" element={<AdditionSubtraction />} />
+          <Route path="/tools/poset" element={<POSET />} />
+          <Route path="/tools/eulerian-path" element={<EulerianPath />} />
           <Route path="*" element={<h1>404 Not Found</h1>} />
           <Route path="/why-do-we-learn/:topic" element={<FindTopic />} />
           <Route path="/tools/division-algorithm" element={<BoothsDivisionAlgorithm />} />
