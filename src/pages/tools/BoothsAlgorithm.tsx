@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FormEvent, useEffect, useState } from 'react'
+import React, { FormEvent, useState } from 'react'
 
 const addBinary = (a: string, b: string) => {
     let sum = '';
@@ -27,59 +27,39 @@ const BoothsAlgorithm = () => {
     const [num1Bin, setNum1Bin] = useState<string>('');
     const [num2Bin, setNum2Bin] = useState<string>('');
     const [steps, setSteps] = useState<any[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const shiftRight = (ac: string, qr: string, q_1: string) => {
         // arithmetic shift right
         const shifted = ac[0] + ac + qr + q_1;
         return shifted;
     }
 
-    const boothAlgorithm = (num1: string, num2: string) => {
-        // use 5 bit for all operations
-        // give steps in json to visualize
-        const steps: any = [];
-        let ac = '00000000';
-        let qr = num1;
-        let q_1 = '0';
-        steps.push({ ac, qr, q_1, operation: 'Initial' });
-        for (let i = 0; i < num1.length; i++) {
-            const lastBit = qr[qr.length - 1];
-            if (lastBit + q_1 === '01') {
-                ac = addBinary(ac, num2);
-                steps.push({ ac, qr, q_1, operation: 'A = A - M' });
-            } else if (lastBit + q_1 === '10') {
-                ac = addBinary(ac, negate(num2));
-                steps.push({ ac, qr, q_1, operation: 'A = A + M' });
-            }
-            const whole = shiftRight(ac, qr, q_1);
-            ac = whole.substring(0, 8);
-            qr = whole.substring(8, 16);
-            q_1 = whole[16];
-            steps.push({ ac, qr, q_1, operation: 'Shift Right' });
-        }
-        let bin = ac + qr;
-        let negated = false;
-        if (bin[0] === '1') {
-            bin = negate(bin);
-            negated = true;
-        }
-        console.log(bin);
-
-        let num = parseInt(bin, 2);
-        if (negated) {
-            num = -num;
-        }
-        steps.push({ ac, qr, q_1: num, operation: 'Result' });
-        return steps;
+    const boothAlgorithm = async (num1: string, num2: string) => {
+        // Hit endpoint /api/booths-algorithm?num1={num1}&num2={num2}
+        // returns json object with steps
+        // Example response:
+        // {
+        //     "result": 20,
+        //     "steps": [
+        //         ...
+        //     ]
+        // }
+        const response = await fetch(`http://127.0.0.1:8000/api/booths-algorithm/?num1=${num1}&num2=${num2}`)
+            .then(response => {
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        return response.steps;
     }
 
-    useEffect(() => {
-        if (num1Bin.trim() === '' || num2Bin.trim() === '') return;
-        const r = boothAlgorithm(num1Bin, num2Bin);
-        setSteps(r);
-        setResult([r[0]]);
-    }, [num1Bin, num2Bin]);
-
-
+    const handleSubmit  = async (e: React.FormEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        const steps = await boothAlgorithm(num1Bin, num2Bin);
+        setSteps(steps);
+        setResult(steps.slice(0, 1));
+    }
     const numToBin = (num: string) => {
         if (num.trim() === '' || num.trim() === '-') return '';
         num = num.trim();
@@ -114,7 +94,7 @@ const BoothsAlgorithm = () => {
         setSteps([]);
     }
     const autoShowNext = () => {
-        if (result.length === steps.length){
+        if (result.length === steps.length) {
             return;
         }
         let i = 0;
@@ -137,6 +117,7 @@ const BoothsAlgorithm = () => {
             <form className='flex flex-col gap-2 w-96'>
                 Multiplicand: <input value={parseInt(num1Bin, 2).toString()} type='number' placeholder='Enter the multiplicand' onChange={handleNum1Bin} className='border p-2 rounded-md' />
                 Multiplier: <input value={parseInt(num2Bin, 2).toString()} type='number' placeholder='Enter the multiplier' onChange={handleNum2Bin} className='border p-2 rounded-md' />
+                <button type='submit' className='bg-blue-500 text-white p-2 rounded-md' onClick={handleSubmit}>Calculate</button>
             </form>
             <div className="my-2 flex gap-2">
                 {result.length > 0 && (
