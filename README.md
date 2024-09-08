@@ -41,12 +41,28 @@ npm install -g pnpm
 pnpm run dev
 ```
 
+4. Run the django server
+
+> First time setup
+```
+cd backend
+virtualenv venv
+source venv/bin/activate // or venv\Scripts\activate on windows
+pip install -r requirements.txt
+```
+
+```bash
+cd backend
+python manage.py runserver
+```
+
 ## Future Plans
 
 - [ ] Add more tools
 - [ ] Add more content
 - [ ] Add interactive examples
 - [ ] Add more future plans
+- [ ] Deploy django backend on a server
 
 ## Contributors
 
