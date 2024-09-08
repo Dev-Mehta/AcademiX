@@ -1,3 +1,5 @@
-from django.shortcuts import render
+from django.http import JsonResponse
 
-# Create your views here.
+class BoothsAlgorithmView:
+    def post(self, request):
+        return JsonResponse({'message': 'Hello, World!'})
