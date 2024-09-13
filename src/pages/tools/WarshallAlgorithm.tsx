@@ -10,6 +10,7 @@ const WarshallAlgorithm = () => {
     const [showResults, setShowResults] = useState(false);
     const [iterations, setIterations] = useState<number[][][]>([]);
 
+
     const handleVerticesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const v = parseInt(e.target.value);
         if (isNaN(v)) {
@@ -28,6 +29,8 @@ const WarshallAlgorithm = () => {
         }
     };
 
+
+
     const handleGraphChange = (row: number, col: number, value: string) => {
         const newGraph = [...graph];
         const trimmedValue = value.trim().toLowerCase();
@@ -37,13 +40,13 @@ const WarshallAlgorithm = () => {
             newGraph[row][col] = Infinity;
         }
         else {
-            const numericValue = parseFloat(trimmedValue);
             //added
-            if (!isNaN(numericValue)) {
+            if ((/^\d$/.test(trimmedValue))) {
+                const numericValue = parseFloat(trimmedValue);
                 newGraph[row][col] = numericValue;
             } else {
-                setErrorMessage("Invalid input! Only numeric values or 'inf' are allowed.");
-                return ;
+                setErrorMessage("All cell must be filled with valid value,Only numeric values or 'inf' are allowed.");
+                return;
             }
 
 
@@ -53,33 +56,39 @@ const WarshallAlgorithm = () => {
         setErrorMessage("");
     };
 
-  //dipslay error message for invalid value or empty cell
+   
+    //dipslay error message for invalid value or empty cell
     const validateGraphInput = () => {
         for (let i = 0; i < graph.length; i++) {
             for (let j = 0; j < graph[i].length; j++) {
+                const value = String(graph[i][j]).trim();
+                if (i !== j) {
+                    if (value === '') {
+                        setErrorMessage("All cell must be filled with valid value,Only numeric values or 'inf' are allowed.");
 
-
-                if (i !== j  && graph[i][j]=='') {
-                    setErrorMessage("All cells must be filled before running the algorithm.");
-                    return false;
+                        return false;
+                    }
+                    if (value !== 'inf' && isNaN(Number(value))) {
+                        setErrorMessage("All cell must be filled with valid value Only numeric values or 'inf' are allowed.");
+                        return false;
+                    }
                 }
-                
-                 if (i !== j && typeof graph[i][j] === 'string' && graph[i][j] !== 'inf' ) {
-                    setErrorMessage("Invalid input detected. Only 'inf' or a valid number is allowed.");
-                    return false;
-                }
-                
             }
         }
+        
+        // Clear error message if all inputs are valid
         setErrorMessage("");
         return true;
     };
-
-
+  
     const floydWarshall = () => {
         if (!validateGraphInput()) {
-            return ;
+            setPaths([]);
+            setIterations([]);
+            setShowResults(false);
+            return;
         }
+
         const dist = Array.from({ length: vertices }, () => Array(vertices).fill(Infinity));
         const next = Array.from({ length: vertices }, () => Array(vertices).fill(null));
 
@@ -117,6 +126,7 @@ const WarshallAlgorithm = () => {
         }
         setIterations(iterationSnapshots as number[][][]);
         setShowResults(true);
+
     };
 
     const calculatePaths = (next: number[][], dist: number[][]) => {
@@ -211,7 +221,7 @@ const WarshallAlgorithm = () => {
                         ))}
 
 
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall} disabled={!!errorMessage}>
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall} >
                             Run Floyd-Warshall Algorithm
                         </button>
                     </div>
@@ -312,3 +322,4 @@ const WarshallAlgorithm = () => {
 }
 
 export default WarshallAlgorithm;
+
