@@ -1,35 +1,94 @@
 import { useState, useRef } from "react";
 import { ForceGraph2D } from "react-force-graph";
 
+
 const WarshallAlgorithm = () => {
-    const [graph, setGraph] = useState<number[][]>([]);
+    const [graph, setGraph] = useState<(number | string)[][]>([]);
     const [vertices, setVertices] = useState(0);
-    const [distances, setDistances] = useState<number[][]>([]);
+    const [errorMessage, setErrorMessage] = useState<string>("");
     const [paths, setPaths] = useState<{ from: number; to: number; path: string; distance: number; }[]>([]);
     const [showResults, setShowResults] = useState(false);
     const [iterations, setIterations] = useState<number[][][]>([]);
 
+
     const handleVerticesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const v = parseInt(e.target.value);
+        if (isNaN(v)) {
+            setVertices(0);
+            setErrorMessage("Please enter a valid number of vertices greater than 0.");
+            return;
+        }
         if (!isNaN(v) && v > 0) {
+            if (v > 10) {
+                setErrorMessage("Please enter a number of vertices less than or equal to 10.");
+                return;
+            }
             setVertices(v);
-            setGraph(Array(v).fill(null).map(() => Array(v).fill(0)));
+            setGraph(Array(v).fill(null).map(() => Array(v).fill('')));
+            setErrorMessage("")
         }
     };
+
+
 
     const handleGraphChange = (row: number, col: number, value: string) => {
         const newGraph = [...graph];
-        const parsedValue = value.trim().toLowerCase();
-        if (parsedValue === 'inf') {
+        const trimmedValue = value.trim().toLowerCase();
+        if (trimmedValue === '') {
+            newGraph[row][col] = ''; // Allow clearing of values
+        } else if (trimmedValue === 'inf') {
             newGraph[row][col] = Infinity;
-        } else {
-            const numericValue = parseFloat(parsedValue);
-            newGraph[row][col] = isNaN(numericValue) ? Infinity : numericValue;
         }
+        else {
+            //added
+            if ((/^\d$/.test(trimmedValue))) {
+                const numericValue = parseFloat(trimmedValue);
+                newGraph[row][col] = numericValue;
+            } else {
+                setErrorMessage("All cell must be filled with valid value,Only numeric values or 'inf' are allowed.");
+                return;
+            }
+
+
+        }
+
         setGraph(newGraph);
+        setErrorMessage("");
     };
 
+   
+    //dipslay error message for invalid value or empty cell
+    const validateGraphInput = () => {
+        for (let i = 0; i < graph.length; i++) {
+            for (let j = 0; j < graph[i].length; j++) {
+                const value = String(graph[i][j]).trim();
+                if (i !== j) {
+                    if (value === '') {
+                        setErrorMessage("All cell must be filled with valid value,Only numeric values or 'inf' are allowed.");
+
+                        return false;
+                    }
+                    if (value !== 'inf' && isNaN(Number(value))) {
+                        setErrorMessage("All cell must be filled with valid value Only numeric values or 'inf' are allowed.");
+                        return false;
+                    }
+                }
+            }
+        }
+        
+        // Clear error message if all inputs are valid
+        setErrorMessage("");
+        return true;
+    };
+  
     const floydWarshall = () => {
+        if (!validateGraphInput()) {
+            setPaths([]);
+            setIterations([]);
+            setShowResults(false);
+            return;
+        }
+
         const dist = Array.from({ length: vertices }, () => Array(vertices).fill(Infinity));
         const next = Array.from({ length: vertices }, () => Array(vertices).fill(null));
 
@@ -62,12 +121,12 @@ const WarshallAlgorithm = () => {
             iterationSnapshots.push(dist.map(row => row.slice()));
         }
 
-        setDistances(dist);
         if (next !== null) {
             calculatePaths(next, dist);
         }
         setIterations(iterationSnapshots as number[][][]);
         setShowResults(true);
+
     };
 
     const calculatePaths = (next: number[][], dist: number[][]) => {
@@ -121,8 +180,13 @@ const WarshallAlgorithm = () => {
                         type="number"
                         value={vertices}
                         onChange={handleVerticesChange}
-                        min="1"
+                        min={1}
+                        max={10}
                     />
+
+                    {errorMessage && (
+                        <p className="text-red-500 mt-2">{errorMessage}</p>
+                    )}
                 </div>
 
                 {vertices > 0 && (
@@ -130,19 +194,34 @@ const WarshallAlgorithm = () => {
                         <p>Enter Adjacency Matrix (use 'inf' for infinity):</p>
                         {graph.map((row, i) => (
                             <div key={i}>
-                                {row.map((value, j) => (
-                                    <input
-                                        className="border rounded-md p-1"
-                                        key={j}
-                                        type="text"
-                                        value={value === Infinity ? 'inf' : value}
-                                        onChange={(e) => handleGraphChange(i, j, e.target.value)}
-                                        style={{ width: '50px', margin: '2px' }}
-                                    />
+                                {row.map((_, j) => (
+                                    i === j ? (
+                                        <input
+                                            className="border rounded-md p-1"
+                                            key={j}
+                                            type="text"
+                                            value={0}
+                                            readOnly={true}
+                                            style={{ width: '50px', margin: '2px', border: '2px solid #aaa' }}
+                                        />
+                                    ) : (
+                                        <input
+                                            className="border rounded-md p-1"
+                                            key={j}
+                                            type="text"
+                                            onChange={(e) => handleGraphChange(i, j, e.target.value)}
+                                            style={{ width: '50px', margin: '2px', border: '2px solid black' }}
+                                        />
+                                    )
                                 ))}
+
+
                             </div>
+
                         ))}
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall}>
+
+
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall} >
                             Run Floyd-Warshall Algorithm
                         </button>
                     </div>
@@ -154,7 +233,7 @@ const WarshallAlgorithm = () => {
 
                         {iterations.map((iteration, index) => (
                             <div key={index}>
-                                <i>Iteration {index + 1}</i>
+                                <i>{index === iterations.length - 1 ? `Iteration ${index + 1} - Final Shortest Path Matrix` : `Iteration - ${index + 1}`}</i>
                                 <table className="border border-collapse my-2">
                                     <tbody>
                                         <tr className="border">
@@ -170,7 +249,7 @@ const WarshallAlgorithm = () => {
                                                     <td
                                                         className="border p-2 text-center"
                                                         key={`cell-${i}-${j}`}>
-                                                        {value === Infinity ? 'inf' : value}
+                                                        {i === j ? '0' : value === Infinity ? 'inf' : value}
                                                     </td>
                                                 ))}
                                             </tr>
@@ -179,28 +258,6 @@ const WarshallAlgorithm = () => {
                                 </table>
                             </div>
                         ))}
-                        <i>Final Shortest Path Matrix</i>
-                        <table className="border border-collapse">
-                            <tbody>
-                                <tr>
-                                    <th className="border p-2">&nbsp;</th> {/* Empty cell */}
-                                    {distances[0].map((_, j) => (
-                                        <th key={`final-header-${j}`} className="border p-2">{j + 1}</th>
-                                    ))}
-                                </tr>
-                                {distances.map((row, i) => (
-                                    <tr key={`final-row-${i}`}>
-                                        <th className="border p-2">{i + 1}</th>
-                                        {row.map((value, j) => (
-                                            <td key={`final-cell-${i}-${j}`} className="border p-2 text-center">
-                                                {value === Infinity ? 'inf' : value}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
 
                         <p className="font-bold text-xl my-4">Paths:</p>
                         {paths.map((path, index) => (
@@ -215,7 +272,7 @@ const WarshallAlgorithm = () => {
                 )}
             </div>
             <div>
-                { showResults && (
+                {showResults && (
                     <ForceGraph2D
                         graphData={{
                             nodes: Array.from({ length: vertices }).map((_, i) => ({ id: i + 1 })), // Create nodes: 0, 1, 2, ..., n-1
@@ -223,31 +280,31 @@ const WarshallAlgorithm = () => {
                                 .map((row, i) => row.map((value, j) => ({ source: i + 1, target: j + 1, value })))
                                 .flat()
                                 .filter(link => link.value !== Infinity)
-                            
+
                         }}
                         linkWidth={2}
-                        linkDirectionalArrowLength={3.5}
+                        linkDirectionalArrowLength={4.5}
                         linkDirectionalArrowRelPos={1}
                         enableNodeDrag={true}
-                        enablePanInteraction={false}
+                        enablePanInteraction={true}
                         enableZoomInteraction={false}
 
-                        width={document.documentElement.clientWidth < 768 ? document.documentElement.clientWidth*0.9 : document.documentElement.clientWidth - (outputRef.current?.clientWidth ?? 0) - 100}
+                        width={document.documentElement.clientWidth < 768 ? document.documentElement.clientWidth * 0.9 : document.documentElement.clientWidth - (outputRef.current?.clientWidth ?? 0) - 100}
                         nodeCanvasObject={(node, ctx, globalScale) => {
                             const label = node.id;
                             const fontSize = 12 / globalScale;
                             ctx.font = `${fontSize}px Sans-Serif`;
                             const textWidth = ctx.measureText(String(label ?? '')).width;
                             const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
-        
+
                             ctx.fillStyle = 'rgba(255, 255, 255, 1)';
                             ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
-        
+
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
                             ctx.fillStyle = '#000';
                             ctx.fillText(String(label), node.x ?? 0, (node.y ?? 0));
-        
+
                             node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
                         }}
                         nodePointerAreaPaint={(node, color, ctx) => {
@@ -265,3 +322,4 @@ const WarshallAlgorithm = () => {
 }
 
 export default WarshallAlgorithm;
+
