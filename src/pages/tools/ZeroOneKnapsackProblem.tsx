@@ -151,17 +151,15 @@ function knapsack(W, val, wt) {
                     {finalProfit && (<>Final Profit: {finalProfit}</>)}
                 </div>
                 {matrix.length > 0 && (
-                    <div className="py-4">
-                        Dynamic Programming Table:
-                        <table className="border-collapse border border-gray-300 w-full text-center">
+                    <div className="overflow-x-auto py-2">
+                        <table className="border-collapse border border-gray-300 w-full text-center min-w-max">
                             <tbody>
                                 {matrix.map((row: number[], rowIndex) => (
                                     <tr key={rowIndex} className="odd:bg-gray-100 even:bg-gray-200">
                                         {row.map((i, colIndex) => (
                                             <td
                                                 key={colIndex}
-                                                className="border border-gray-300 p-2 text-gray-700"
-                                            >
+                                                className="border border-gray-300 p-2 text-gray-700 whitespace-nowrap">
                                                 {i}
                                             </td>
                                         ))}

@@ -17,6 +17,7 @@ import FractionalKnapsack from "./pages/tools/FractionalKnapsack"
 import ZeroOneKnapsackProblem from "./pages/tools/ZeroOneKnapsackProblem"
 import InsertionSortAlgorithm from "./pages/tools/InsertionSortAlgorithm"
 import StringMatching from "./pages/tools/StringMatching"
+import LCS from "./pages/tools/LCS"
 const App = () => {
   const FindTopic = () => {
     const { topic } = useParams();
@@ -56,6 +57,7 @@ const App = () => {
           <Route path="/tools/insertion-sort" element={<InsertionSortAlgorithm/>}></Route>
           <Route path="/article/:title" element={<Article />} />
           <Route path="/tools/string-matching" element={<StringMatching />} />
+          <Route path="/tools/longest-common-subsequence" element={<LCS />} />
         </Routes>
       </Router>
     </>
