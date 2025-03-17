@@ -11,7 +11,15 @@ import BoothsDivisionAlgorithm from "./pages/tools/BoothsDiv"
 import WarshallAlgorithm from "./pages/tools/WarshallAlgorithm"
 import DiscreteMath from "./posts/DiscreteMath"
 import Article, {ArticleList} from "./pages/Article"
-
+import BubbleSortAlgorithm from "./pages/tools/BubbleSortAlgorithm"
+import SelectionSortAlgorithm from "./pages/tools/SelectionSortAlgorithm"
+import FractionalKnapsack from "./pages/tools/FractionalKnapsack"
+import ZeroOneKnapsackProblem from "./pages/tools/ZeroOneKnapsackProblem"
+import InsertionSortAlgorithm from "./pages/tools/InsertionSortAlgorithm"
+import MergeSortAlgorithm from "./pages/tools/MergeSortAlgorithm"
+import QuickSortAlgorithm from "./pages/tools/QuickSortAlgorithm"
+import MCM from "./pages/tools/MCM"
+import StringMatching from "./pages/tools/StringMatching"
 const App = () => {
   const FindTopic = () => {
     const { topic } = useParams();
@@ -44,7 +52,17 @@ const App = () => {
           <Route path="/why-do-we-learn/:topic" element={<FindTopic />} />
           <Route path="/tools/division-algorithm" element={<BoothsDivisionAlgorithm />} />
           <Route path="/tools/warshall-algorithm" element={<WarshallAlgorithm />} />
+          <Route path="/tools/bubble-sort" element={<BubbleSortAlgorithm/>}></Route>
+          <Route path="/tools/selection-sort" element={<SelectionSortAlgorithm/>}></Route>
+          <Route path="/tools/fractional-knapsack" element={<FractionalKnapsack/>}></Route>
+          <Route path="/tools/0-1-knapsack" element={<ZeroOneKnapsackProblem/>}></Route>
+          <Route path="/tools/insertion-sort" element={<InsertionSortAlgorithm/>}></Route>
+          <Route path="/tools/merge-sort" element={<MergeSortAlgorithm/>}></Route>
+          <Route path="/tools/quick-sort" element={<QuickSortAlgorithm/>}></Route>
+          <Route path="/tools/matrix-chain-multiplication" element={<MCM/>}></Route>
+
           <Route path="/article/:title" element={<Article />} />
+          <Route path="/tools/string-matching" element={<StringMatching />} />
         </Routes>
       </Router>
     </>

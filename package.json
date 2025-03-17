@@ -25,6 +25,7 @@
     "lucide-react": "^0.446.0",
     "postcss": "^8.4.41",
     "react": "^18.3.1",
+    "react-code-blocks": "^0.1.6",
     "react-dom": "^18.3.1",
     "react-force-graph": "^1.44.4",
     "react-markdown": "^9.0.1",
