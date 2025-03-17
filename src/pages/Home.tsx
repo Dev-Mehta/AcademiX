@@ -135,6 +135,14 @@ const Home = () => {
                                 <a href="/tools/string-matching" className="ml-1 text-indigo-600 hover:underline">String Matching</a>
                             </div>
                         </div>
+                        <div className="my-2 rounded-md p-4 flex text-lg items-center border border-gray-300">
+                            <Link className="text-lg mr-4" size="18" />
+                            <div className="gap-1">
+                                <a className=""
+                                    href="https://en.wikipedia.org/wiki/Longest_common_subsequence">:What is Longest Common Subsequence</a>
+                                <a href="/tools/longest-common-subsequence" className="ml-1 text-indigo-600 hover:underline">Longest Common Subsequence</a>
+                            </div>
+                        </div>
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="3">

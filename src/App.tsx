@@ -20,6 +20,7 @@ import MergeSortAlgorithm from "./pages/tools/MergeSortAlgorithm"
 import QuickSortAlgorithm from "./pages/tools/QuickSortAlgorithm"
 import MCM from "./pages/tools/MCM"
 import StringMatching from "./pages/tools/StringMatching"
+import LCS from "./pages/tools/LCS"
 const App = () => {
   const FindTopic = () => {
     const { topic } = useParams();
@@ -63,6 +64,7 @@ const App = () => {
 
           <Route path="/article/:title" element={<Article />} />
           <Route path="/tools/string-matching" element={<StringMatching />} />
+          <Route path="/tools/longest-common-subsequence" element={<LCS />} />
         </Routes>
       </Router>
     </>
