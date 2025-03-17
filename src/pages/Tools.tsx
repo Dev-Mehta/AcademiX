@@ -91,6 +91,22 @@ const Tools = () => {
                     <Link className="text-lg mr-4" size="18" />
                     <div className="gap-1">
                         <a className=""
+                            href="https://en.wikipedia.org/wiki/Merge_sort">:What is Merge Sort</a>
+                        <a href="/tools/merge-sort" className="ml-1 text-indigo-600 hover:underline">Merge Sort</a>
+                    </div>
+                </div>
+                <div className="my-2 rounded-md p-4 flex text-lg items-center border border-gray-300">
+                    <Link className="text-lg mr-4" size="18" />
+                    <div className="gap-1">
+                        <a className=""
+                            href="https://en.wikipedia.org/wiki/Quicksort">:What is Quick Sort</a>
+                        <a href="/tools/quick-sort" className="ml-1 text-indigo-600 hover:underline">Quick Sort</a>
+                    </div>
+                </div>
+                <div className="my-2 rounded-md p-4 flex text-lg items-center border border-gray-300">
+                    <Link className="text-lg mr-4" size="18" />
+                    <div className="gap-1">
+                        <a className=""
                             href="https://en.wikipedia.org/wiki/Continuous_knapsack_problem">:What is Fractional Knapsack</a>
                         <a href="/tools/fractional-knapsack" className="ml-1 text-indigo-600 hover:underline">Fractional Knapsack</a>
                     </div>
@@ -101,6 +117,14 @@ const Tools = () => {
                         <a className=""
                             href="https://en.wikipedia.org/wiki/Knapsack_problem">:What is 0/1 Knapsack</a>
                         <a href="/tools/0-1-knapsack" className="ml-1 text-indigo-600 hover:underline">0/1 Knapsack</a>
+                    </div>
+                </div>
+                <div className="my-2 rounded-md p-4 flex text-lg items-center border border-gray-300">
+                    <Link className="text-lg mr-4" size="18" />
+                    <div className="gap-1">
+                        <a className=""
+                            href="https://en.wikipedia.org/wiki/Matrix_chain_multiplication">:What is Matrix Chain Multiplication</a>
+                        <a href="/tools/matrix-chain-multiplication" className="ml-1 text-indigo-600 hover:underline">MCM</a>
                     </div>
                 </div>
                 <div className="my-2 rounded-md p-4 flex text-lg items-center border border-gray-300">
