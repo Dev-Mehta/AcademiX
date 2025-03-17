@@ -143,7 +143,7 @@ const BoothsAlgorithm = () => {
                 </AccordionContent>
                 </AccordionItem>
             </Accordion>
-            <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm#The_algorithm'>:Explanation</a></p>
+            <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm#The_algorithm'>:    Explanation</a></p>
             <p className='text-xl my-2 prose'><a href="https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm#How_it_works">:How it works?</a></p>
             <p className='my-4 text-2xl font-bold border-b-2 border-b-indigo-400 w-full'>Calculator</p>
             <form className='flex flex-col gap-2 w-96'>
