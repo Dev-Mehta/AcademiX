@@ -1,7 +1,15 @@
-import React, { useState } from 'react'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../components/accordion"
-import { CopyBlock, dracula } from 'react-code-blocks'
+import React, { useState } from 'react';
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
+interface BubbleSortStep {
+  key: string;
+  value: number[];
+  i: number;
+  j: number;
+  beforeSwap: number[];
+}
 
 function BubbleSortAlgorithm() {
   const codeSnippet = `function bubbleSort(arr) {
@@ -15,10 +23,12 @@ function BubbleSortAlgorithm() {
     }
     return arr;
   }`;
-  const [numbers, setNumbers] = useState("")
-  const [steps, setSteps] = useState<{ key: string, value: number[], i: number, j: number, beforeSwap: number[] }[]>([])
+
+  const [numbers, setNumbers] = useState("");
+  const [steps, setSteps] = useState<BubbleSortStep[]>([]);
+
   function toIntArray(intString: string) {
-    const strArray = intString.split(','); // Splitting the string into an array
+    const strArray = intString.split(',');
     const intArray = strArray.map(num => {
       try {
         const parsed = parseInt(num.trim(), 10);
@@ -26,119 +36,116 @@ function BubbleSortAlgorithm() {
           throw new Error(`Invalid number: "${num.trim()}"`);
         }
         return parsed;
-      } catch (error: unknown) {
+      } catch (error) {
         console.error((error as Error).message);
-        return Number.MIN_VALUE; // or handle it as needed
+        return Number.MIN_VALUE;
       }
     });
-
     return intArray;
   }
 
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Handling submit");
-    const newSteps: { key: string, value: number[], i: number, j: number, beforeSwap: number[] }[] = []; // Initialize an empty array to store steps
-    const arr = toIntArray(numbers); // Convert input numbers to an integer array
+    const newSteps: BubbleSortStep[] = [];
+    const arr = toIntArray(numbers);
     const n = arr.length;
 
     for (let i = 0; i < n - 1; i++) {
       for (let j = 0; j < n - i - 1; j++) {
         if (arr[j] > arr[j + 1]) {
-          const temp = JSON.parse(JSON.stringify(arr));
-          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]; // Swap the elements
-          newSteps.push({ key: `${i},${j}`, value: [...arr], i, j, beforeSwap: temp }); // Add current state of array to newSteps
-          console.log("Step added:", newSteps);
+          const temp = [...arr];
+          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+          newSteps.push({ key: `${i},${j}`, value: [...arr], i, j, beforeSwap: temp });
         }
       }
     }
-
-    // Update steps state after processing is complete
     setSteps(newSteps);
-    console.log("Final steps:", newSteps);
-    console.log("Sorted array:", arr);
   };
 
   return (
-    <div className='m-4 gap-4 justify-center items-center flex flex-col'>
-      <div className="w-[80%]">
-        <h1 className="text-2xl font-bold">Bubble Sort</h1>
-        <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Bubble_sort'>:Explanation</a></p>
-        <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Bubble_sort#Pseudocode_implementation'>:Pseudo-code</a></p>
-        <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Bubble_sort#Step-by-step_example'>:Example</a></p>
-        
-        <Accordion type="single" collapsible className="">
-          <AccordionItem value="item-1">
-            <AccordionTrigger className="text-xl font-bold">Algorithm?</AccordionTrigger>
-            <AccordionContent className='font-mono w-full'>
-
-              <CopyBlock
-                text={codeSnippet}
-                language="JavaScript"
-                theme={dracula}
-                codeBlock></CopyBlock>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-        <form className='flex flex-col gap-2'>
-          Array (comma seperated): <input type="text" name="arr" id="arr" className='border p-2 rounded-md' onChange={(e) => { setNumbers(e.target.value) }} />
-          <button type='button' className='bg-blue-500 text-white p-2 rounded-md' onClick={(event) => { handleSubmit(event) }}>Calculate</button>
+    <AlgorithmPageLayout
+      title="Bubble Sort"
+      description="A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order."
+      resources={[
+        { label: "Wikipedia: Bubble Sort", url: "https://en.wikipedia.org/wiki/Bubble_sort" },
+        { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+      ]}
+      codeSnippet={codeSnippet}
+      controls={
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="arr" className="text-sm font-medium leading-none">
+              Array (comma separated)
+            </label>
+            <Input
+              id="arr"
+              placeholder="e.g. 5, 3, 8, 4, 2"
+              value={numbers}
+              onChange={(e) => setNumbers(e.target.value)}
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            Sort
+          </Button>
         </form>
-        <div id="output">
-          <table className="border-collapse font-mono my-4 border border-slate-400 w-full shadow-lg rounded-md">
+      }
+    >
+      {steps.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-600 text-white">
-                <th className="px-4 py-2 border border-slate-400">[i,j]</th>
-                <th className="px-4 py-2 border border-slate-400">Array Before Swap</th>
-
-                <th className="px-4 py-2 border border-slate-400">Array after Swap</th>
+              <tr className="bg-muted text-left">
+                <th className="p-3 font-medium border-b">[i, j]</th>
+                <th className="p-3 font-medium border-b">Before Swap</th>
+                <th className="p-3 font-medium border-b">After Swap</th>
               </tr>
             </thead>
             <tbody>
-              {steps.length > 0 &&
-                steps.map((step: { key: string, value: number[], i: number, j: number, beforeSwap: number[] }, index: number) => {
-                  console.log(`debugging step`, step);
-                  return (
-                    <tr key={index} className="odd:bg-slate-100 even:bg-slate-200 hover:bg-slate-300 transition duration-200">
-                      <td className="px-4 py-2 border border-slate-400 text-center">{step.key}</td>
-                      <td className="px-4 py-2 border border-slate-400">
-                        {step.beforeSwap.map((val: number, idx: number) => {
-                          return idx === step.j || idx === step.j + 1 ? (
-                            <span key={idx} className="bg-yellow-300 mx-1 px-1 font-bold rounded-sm shadow-sm">
-                              {val}
-                            </span>
-                          ) : (
-                            <span key={idx} className="mx-1 px-1 text-slate-700">
-                              {val}
-                            </span>
-                          );
-                        })}
-                      </td>
-                      <td className="px-4 py-2 border border-slate-400">
-                        {step.value.map((val: number, idx: number) => {
-                          return idx === step.j || idx === step.j + 1 ? (
-                            <span key={idx} className="bg-yellow-300 mx-1 px-1 font-bold rounded-sm shadow-sm">
-                              {val}
-                            </span>
-                          ) : (
-                            <span key={idx} className="mx-1 px-1 text-slate-700">
-                              {val}
-                            </span>
-                          );
-                        })}
-                      </td>
-
-                    </tr>
-                  );
-                })}
+              {steps.map((step, index) => (
+                <tr key={index} className="border-b hover:bg-muted/50 transition-colors">
+                  <td className="p-3 font-mono">{step.key}</td>
+                  <td className="p-3">
+                    <div className="flex gap-1">
+                      {step.beforeSwap.map((val, idx) => (
+                        <span
+                          key={idx}
+                          className={`px-2 py-1 rounded text-xs font-mono transition-colors ${idx === step.j || idx === step.j + 1
+                              ? "bg-yellow-200 text-yellow-900 font-bold"
+                              : "bg-secondary text-secondary-foreground"
+                            }`}
+                        >
+                          {val}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex gap-1">
+                      {step.value.map((val, idx) => (
+                        <span
+                          key={idx}
+                          className={`px-2 py-1 rounded text-xs font-mono transition-colors ${idx === step.j || idx === step.j + 1
+                              ? "bg-green-200 text-green-900 font-bold"
+                              : "bg-secondary text-secondary-foreground"
+                            }`}
+                        >
+                          {val}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-
         </div>
-      </div>
-    </div>
-  )
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <p>Enter numbers and click "Sort" to see the visualization.</p>
+        </div>
+      )}
+    </AlgorithmPageLayout>
+  );
 }
 
-export default BubbleSortAlgorithm
+export default BubbleSortAlgorithm;
