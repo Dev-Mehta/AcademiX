@@ -1,222 +1,257 @@
-import React, { useState, useEffect } from 'react'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../components/accordion"
-import { dracula, CopyBlock } from 'react-code-blocks'
+import React, { useState } from 'react';
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+interface Step {
+    arr: number[];
+    i: number;
+    j: number;
+    pivotIndex?: number;
+    fixedIndices: Set<number>;
+    processing: string;
+    type: 'partition' | 'swap' | 'fix';
+}
 
 function QuickSortAlgorithm() {
-    const codeSnippet = `// Partition function
-function partition(arr, low, high)
-{
-
-    // Choose the pivot
+    const codeSnippet = `function partition(arr, low, high) {
     let pivot = arr[high];
+    let i = (low - 1);
 
-    // Index of smaller element and indicates
-    // the right position of pivot found so far
-    let i = low - 1;
-
-    // Traverse arr[low..high] and move all smaller
-    // elements to the left side. Elements from low to
-    // i are smaller after every iteration
     for (let j = low; j <= high - 1; j++) {
         if (arr[j] < pivot) {
             i++;
-            swap(arr, i, j);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
     }
-
-    // Move pivot after smaller elements and
-    // return its position
-    swap(arr, i + 1, high);
-    return i + 1;
+    [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+    return (i + 1);
 }
 
-// Swap function
-function swap(arr, i, j)
-{
-    let temp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = temp;
-}
-
-// The QuickSort function implementation
-function quickSort(arr, low, high)
-{
+function quickSort(arr, low, high) {
     if (low < high) {
-
-        // pi is the partition return index of pivot
         let pi = partition(arr, low, high);
-
-        // Recursion calls for smaller elements
-        // and greater or equals elements
         quickSort(arr, low, pi - 1);
         quickSort(arr, pi + 1, high);
     }
-}
-
-// Main driver code
-let arr = [ 10, 7, 8, 9, 1, 5 ];
-let n = arr.length;
-
-// Call QuickSort on the entire array
-quickSort(arr, 0, n - 1);
-for (let i = 0; i < arr.length; i++) {
-    console.log(arr[i] + " ");
-}
-`
+}`;
 
     const [numbers, setNumbers] = useState("");
-    const [steps, setSteps] = useState([]);
-
-
+    const [steps, setSteps] = useState<Step[]>([]);
+    const [error, setError] = useState("");
 
     function toIntArray(intString: string) {
-        const strArray = intString.split(','); // Splitting the string into an array
-        const intArray = strArray.map(num => {
-            try {
-                const parsed = parseInt(num.trim(), 10);
-                if (isNaN(parsed)) {
-                    throw new Error(`Invalid number: "${num.trim()}"`);
-                }
-                return parsed;
-            } catch (error: unknown) {
-                console.error((error as Error).message);
-                return Number.MIN_VALUE; // or handle it as needed
-            }
-        });
-
-        return intArray;
+        if (!intString.trim()) return [];
+        return intString.split(',').map(num => {
+            const parsed = parseInt(num.trim(), 10);
+            return isNaN(parsed) ? null : parsed;
+        }).filter((num): num is number => num !== null);
     }
 
-  
-
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
+        setError("");
         const arr = toIntArray(numbers);
-        setSteps([]);
-        const newSteps = [];
-        quickSort(arr, 0, arr.length - 1, newSteps, new Set());
+        if (arr.length === 0) {
+            setError("Please enter a valid comma-separated list of numbers.");
+            setSteps([]);
+            return;
+        }
+
+        const newSteps: Step[] = [];
+        // Note: The visualization implementation below uses a slightly different logic (Hoare or similar manual tracking) 
+        // than the standard simpler Lomuto partition shown in the snippet above to make visualization clearer.
+        // We will stick to the existing logic but type it correctly.
+
+        // Creating a deep copy for the sort function to work on
+        const arrCopy = [...arr];
+        quickSortRecursive(arrCopy, 0, arrCopy.length - 1, newSteps, new Set());
         setSteps(newSteps);
     };
 
-    function swap(arr, i, j, newSteps, fixedIndices) {
+    // Helper to log swap
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    function swap(arr: number[], i: number, j: number, newSteps: Step[], fixedIndices: Set<number>) {
+        if (i === j) return;
         [arr[i], arr[j]] = [arr[j], arr[i]];
-        newSteps.push({
-            arr: [...arr],
-            i: i,
-            j: j,
-            fixedIndices: new Set(fixedIndices),
-            processing: `Swapping ${arr[i]} and ${arr[j]}`
-        });
+        // We record the state AFTER the swap
     }
-    
-    function partition(arr, low, high, newSteps, fixedIndices) {
-        const pivot = arr[low];
-        let i = low + 1;
-        let j = high;
-    
+
+    // Implementing the logic from the previous file which seemed to try to visualize the partitioning
+    // However, the previous logic was a bit mixed. Let's implement standard Lomuto Partition for consistency with snippet.
+
+    function partition(arr: number[], low: number, high: number, newSteps: Step[], fixedIndices: Set<number>) {
+        const pivot = arr[high];
+        let i = low - 1;
+
         newSteps.push({
             arr: [...arr],
             i: low,
             j: high,
+            pivotIndex: high,
             fixedIndices: new Set(fixedIndices),
-            processing: `Pivot selected: ${pivot}`
+            processing: `Partitioning range [${low}, ${high}] with pivot ${pivot}`,
+            type: 'partition'
         });
-    
-        while (i <= j) {
-            while (i <= high && arr[i] <= pivot) i++;
-            while (j >= low && arr[j] > pivot) j--;
-    
-            if (i < j) {
-                swap(arr, i, j, newSteps, fixedIndices);
+
+        for (let j = low; j <= high - 1; j++) {
+            // Visualizing comparison could be added here
+
+            if (arr[j] < pivot) {
+                i++;
+                if (i !== j) {
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                    newSteps.push({
+                        arr: [...arr],
+                        i: i,
+                        j: j,
+                        pivotIndex: high,
+                        fixedIndices: new Set(fixedIndices),
+                        processing: `Swapped ${arr[i]} and ${arr[j]} (smaller than pivot)`,
+                        type: 'swap'
+                    });
+                }
             }
         }
-    
-        swap(arr, low, j, newSteps, fixedIndices);
-    
-        // Mark the pivot position as fixed after placing it correctly
-        fixedIndices.add(j);
-        newSteps.push({
-            arr: [...arr],
-            i: j,
-            j: j,
-            fixedIndices: new Set(fixedIndices),
-            processing: `Pivot ${arr[j]} fixed at position ${j}`
-        });
-    
-        return j;
+
+        if (i + 1 !== high) {
+            [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
+            newSteps.push({
+                arr: [...arr],
+                i: i + 1,
+                j: high,
+                pivotIndex: i + 1, // Pivot is now here
+                fixedIndices: new Set(fixedIndices),
+                processing: `Moved pivot to correct position ${i + 1}`,
+                type: 'swap'
+            });
+        }
+
+        return i + 1;
     }
-    
-    function quickSort(arr, low, high, newSteps, fixedIndices) {
+
+    function quickSortRecursive(arr: number[], low: number, high: number, newSteps: Step[], fixedIndices: Set<number>) {
         if (low < high) {
             const pi = partition(arr, low, high, newSteps, fixedIndices);
-            quickSort(arr, low, pi - 1, newSteps, fixedIndices);
-            quickSort(arr, pi + 1, high, newSteps, fixedIndices);
+
+            // Mark pivot as fixed
+            fixedIndices.add(pi);
+            newSteps.push({
+                arr: [...arr],
+                i: pi,
+                j: pi,
+                pivotIndex: pi,
+                fixedIndices: new Set(fixedIndices),
+                processing: `Pivot ${arr[pi]} fixed at index ${pi}`,
+                type: 'fix'
+            });
+
+            quickSortRecursive(arr, low, pi - 1, newSteps, fixedIndices);
+            quickSortRecursive(arr, pi + 1, high, newSteps, fixedIndices);
         } else if (low === high) {
             fixedIndices.add(low);
             newSteps.push({
                 arr: [...arr],
                 i: low,
                 j: low,
+                pivotIndex: low,
                 fixedIndices: new Set(fixedIndices),
-                processing: `Single element sorted at index ${low}`
+                processing: `Element ${arr[low]} is sorted`,
+                type: 'fix'
             });
         }
     }
+
     return (
-        <div className='m-4 gap-4 justify-center items-center flex flex-col'>
-            <div className="w-[80%]">
-                <h1 className="text-2xl font-bold">Quick Sort</h1>
-                <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Quicksort'>:Explanation</a></p>
-                <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Quicksort#Lomuto_partition_scheme'>:Pseudo Code</a></p>
-
-                <Accordion type="single" collapsible className="">
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger className="text-xl font-bold">Algorithm?</AccordionTrigger>
-                        <AccordionContent className='font-mono w-full'>
-
-                            <CopyBlock
-                                text={codeSnippet}
-                                language="JavaScript"
-                                theme={dracula}
-                                codeBlock></CopyBlock>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-                <form className='flex flex-col gap-2'>
-                    Array (comma seperated): <input type="text" name="arr" id="arr" className='border p-2 rounded-md' onChange={(e) => { setNumbers(e.target.value) }} />
-                    <button type='button' className='bg-blue-500 text-white p-2 rounded-md' onClick={(event) => { handleSubmit(event) }}>Calculate</button>
+        <AlgorithmPageLayout
+            title="Quick Sort"
+            description="An efficient, in-place sorting algorithm that uses a divide-and-conquer strategy to sort elements."
+            resources={[
+                { label: "Quick Sort", url: "https://en.wikipedia.org/wiki/Quicksort" },
+                // { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+            ]}
+            codeSnippet={codeSnippet}
+            controls={
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <label htmlFor="arr" className="text-sm font-medium leading-none">
+                            Array (comma separated)
+                        </label>
+                        <Input
+                            id="arr"
+                            placeholder="e.g. 10, 7, 8, 9, 1, 5"
+                            value={numbers}
+                            onChange={(e) => setNumbers(e.target.value)}
+                        />
+                        {error && <p className="text-sm text-destructive">{error}</p>}
+                    </div>
+                    <Button type="submit" className="w-full">
+                        Sort
+                    </Button>
                 </form>
-                <table className='border-collapse font-mono my-4 border border-slate-400 w-full'>
-                <thead>
-                    <tr>
-                        <th className="px-2 border border-slate-400">[i,j]</th>
-                        <th className="px-2 border border-slate-400">Array</th>
-                        <th className="px-2 border border-slate-400">Processing</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {steps.length > 0 && steps.map((step, index) => (
-                        <tr key={index}>
-                            <td className="px-2 mx-2 border border-slate-400">[{step.i},{step.j}]</td>
-                            <td className="px-2 mx-2 border border-slate-400">
-                                {step.arr.map((val, idx) => {
-                                    let className = "px-1";
-                                    if (step.fixedIndices.has(idx)) className = "bg-green-300 px-1"; // Fixed element
-                                    else if (idx === step.i || idx === step.j) className = "bg-yellow-300 px-1"; // Swap
-                                    if (idx === step.i) className = "bg-blue-300 px-1"; // Pivot
-                                    return <span key={idx} className={className}>{val} </span>;
-                                })}
-                            </td>
-                            <td className="px-2 mx-2 border border-slate-400">{step.processing}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            <div className="mt-2">Color Legend: <span className="bg-yellow-300 px-1">Swap</span>, <span className="bg-blue-300 px-1">Pivot</span>, <span className="bg-green-300 px-1">Fixed</span></div>
-                      
-            </div>
-        </div>
-    )
+            }
+        >
+            {steps.length > 0 ? (
+                <div className="space-y-4">
+                    <div className="flex gap-4 text-sm justify-center">
+                        <div className="flex items-center gap-2"><span className="w-4 h-4 bg-blue-200 border border-blue-400"></span> Pivot</div>
+                        <div className="flex items-center gap-2"><span className="w-4 h-4 bg-yellow-200 border border-yellow-400"></span> Swapping/Active</div>
+                        <div className="flex items-center gap-2"><span className="w-4 h-4 bg-green-200 border border-green-400"></span> Fixed/Sorted</div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-sm">
+                            <thead>
+                                <tr className="bg-muted text-left">
+                                    <th className="p-3 font-medium border-b w-1/4">Step</th>
+                                    <th className="p-3 font-medium border-b">State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {steps.map((step, index) => (
+                                    <tr key={index} className="border-b hover:bg-muted/50 transition-colors">
+                                        <td className="p-3">
+                                            <div className="font-medium text-xs text-muted-foreground mb-1">
+                                                {step.type.toUpperCase()}
+                                            </div>
+                                            {step.processing}
+                                        </td>
+                                        <td className="p-3">
+                                            <div className="flex gap-1 flex-wrap">
+                                                {step.arr.map((val, idx) => {
+                                                    let className = "bg-secondary text-secondary-foreground";
+                                                    if (step.fixedIndices.has(idx)) {
+                                                        className = "bg-green-200 text-green-900 font-bold border-green-400 border";
+                                                    } else if (idx === step.pivotIndex) {
+                                                        className = "bg-blue-200 text-blue-900 font-bold border-blue-400 border";
+                                                    } else if (step.type === 'swap' && (idx === step.i || idx === step.j)) {
+                                                        className = "bg-yellow-200 text-yellow-900 border-yellow-400 border";
+                                                    }
+
+                                                    return (
+                                                        <span
+                                                            key={idx}
+                                                            className={`min-w-[2rem] h-8 flex items-center justify-center rounded text-xs font-mono transition-colors border ${className}`}
+                                                        >
+                                                            {val}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <p>Enter numbers and click "Sort" to see the visualization.</p>
+                </div>
+            )}
+        </AlgorithmPageLayout>
+    );
 }
 
-export default QuickSortAlgorithm
+export default QuickSortAlgorithm;

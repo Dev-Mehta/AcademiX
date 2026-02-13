@@ -1,150 +1,162 @@
-/* eslint-disable no-constant-binary-expression */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import { ForceGraph2D } from "react-force-graph"
+import React, { useState, useEffect, useRef } from "react";
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import ForceGraph2D from 'react-force-graph-2d';
+
 const POSET = () => {
-    const [set, setSet] = useState<number[]>([]);
-    const [isLattice, setIsLattice] = useState<boolean>(false);
-    const [number, setNumber] = useState<number>(0);
-    const isSquareFree = (n: number) => {
-        for (let i = 2; i * i <= n; i++) {
-            if (n % (i * i) === 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-    const generateDivisors = (n: number) => {
-        const divisors = [];
-        for (let i = 1; i <= n; i++) {
-            if (n % i === 0) {
-                divisors.push(i);
-            }
-        }
-        return divisors;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [data, setData] = useState<any>({
-        nodes: [
-            { id: 1, group: 1 }
-        ], links: [
-            { source: 1, target: 1 }
-        ]
-    });
+    const [number, setNumber] = useState<number | "">("");
+    const [graphData, setGraphData] = useState<{ nodes: any[], links: any[] }>({ nodes: [], links: [] });
+    const [divisors, setDivisors] = useState<number[]>([]);
+    const [isLattice, setIsLattice] = useState<boolean | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
 
-    const divides = (a: number, b: number) => {
-        return b % a === 0;
-    }
-
-    const hasse = (set: number[]) => {
-        let edges: any[] = [];
-        for (let i = 0; i < set.length; i++) {
-            for (let j = 0; j < set.length; j++) {
-                if (divides(set[i], set[j])) {
-                    edges.push([set[i], set[j]]);
-                }
+    useEffect(() => {
+        const updateDimensions = () => {
+            if (containerRef.current) {
+                setDimensions({
+                    width: containerRef.current.clientWidth,
+                    height: 500
+                });
             }
-            // remove reflexive edges
-            edges.splice(edges.findIndex(([a, b]) => a === b
-            ), 1);
-            // remove transitive edges
-            const edgeToDel: any[][] = [];
-            for (let a = 0; a < edges.length; a++) {
-                for (let b = 0; b < edges.length; b++) {
-                    if (edges[a][1] === edges[b][0]) {
-                        edgeToDel.push([edges[a][0], edges[b][1]]);
+        };
+
+        updateDimensions();
+        window.addEventListener('resize', updateDimensions);
+        return () => window.removeEventListener('resize', updateDimensions);
+    }, []);
+
+    const calculatePOSET = () => {
+        if (!number || typeof number !== 'number') return;
+
+        const stringNum = String(number);
+        const parsedNum = parseInt(stringNum);
+
+        // Find all divisors
+        const divs: number[] = [];
+        for (let i = 1; i <= parsedNum; i++) {
+            if (parsedNum % i === 0) divs.push(i);
+        }
+        setDivisors(divs);
+
+        // Generate Hasse Diagram edges
+        // Edge u -> v if u divides v and there is no w such that u divides w and w divides v
+        const links: any[] = [];
+
+        for (let i = 0; i < divs.length; i++) {
+            for (let j = 0; j < divs.length; j++) {
+                if (i === j) continue;
+                const u = divs[i];
+                const v = divs[j];
+
+                if (v % u === 0) {
+                    // Check if direct cover
+                    let isCover = true;
+                    for (let k = 0; k < divs.length; k++) {
+                        const w = divs[k];
+                        if (w !== u && w !== v && v % w === 0 && w % u === 0) {
+                            isCover = false;
+                            break;
+                        }
+                    }
+                    if (isCover) {
+                        links.push({ source: u, target: v });
                     }
                 }
             }
-            edges = edges.filter(([a, b]) => !edgeToDel.some(([c, d]) => a === c && b === d));
         }
-        const nodes = set.map((i) => ({ id: i, group: 1 }));
-        const links = edges.map(([source, target]) => ({ source, target }));
-        const isLattice = edges.every(([a, b]) => edges.some(([c, d]) => a === c && b === d));
-        setIsLattice(isLattice);
-        
-        setData({ nodes, links });
-        return edges;
-    }
-    const handleChange = (e: { target: { value: any; }; }) => {
-        const value = e.target.value;
-        if (value.trim() === '') return;
-        const n = parseInt(value);
-        setNumber(n);
-        const divisors = generateDivisors(n);
-        setSet(divisors);
-        hasse(divisors);
-    }
+
+        const nodes = divs.map(id => ({ id }));
+        setGraphData({ nodes, links });
+
+        // Check if Lattice (simplified: for divisibility POSET of a number, it's always a lattice)
+        setIsLattice(true);
+    };
 
     return (
-        <div className="m-4">
-            <h1 className="text-3xl font-bold">POSET</h1>
-            <p>Partial Order Set</p>
-            <p>Definition: A set P is called a partial order set if it satisfies the following conditions:</p>
-            <ul className="list-disc ml-8">
-                <li>Reflexivity: <code>aRa</code> for all <code>a</code> in <code>P</code>.</li>
-                <li>Anti-symmetry: If <code>aRb</code> and <code>bRa</code>, then <code>a</code> = <code>b</code></li>
-                <li>Transitivity: If <code>aRb</code> and <code>bRc</code>, then <code>aRc</code></li>
-            </ul>
+        <AlgorithmPageLayout
+            title="POSET (Partially Ordered Set)"
+            description="Visualize the divisibility lattice (Hasse Diagram) for a given number. A POSET consists of a set together with a binary relation that represents ordering."
+            resources={[
+                { label: "POSET", url: "https://en.wikipedia.org/wiki/Partially_ordered_set" },
+                { label: "Hasse Diagrams", url: "https://en.wikipedia.org/wiki/Hasse_diagram#Diagram_design" }
+            ]}
+            controls={
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none">Enter Number</label>
+                        <Input
+                            type="number"
+                            value={number}
+                            onChange={(e) => setNumber(parseInt(e.target.value) || "")}
+                            placeholder="e.g. 12"
+                        />
+                    </div>
+                    <button
+                        onClick={calculatePOSET}
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                        Generate Hasse Diagram
+                    </button>
+                    <p className="text-xs text-muted-foreground">Try simple numbers like 12, 24, 30, 36 first.</p>
+                </div>
+            }
+        >
+            <div className="space-y-6">
+                {divisors.length > 0 && (
+                    <div className="p-4 border rounded-lg bg-slate-50">
+                        <h3 className="font-bold text-lg text-primary">Divisors of {number}</h3>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {divisors.map(d => (
+                                <span key={d} className="bg-white border px-3 py-1 rounded-full text-sm font-mono shadow-sm">
+                                    {d}
+                                </span>
+                            ))}
+                            {isLattice && (
+                                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-bold">Lattice</span>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-            <p className="mt-2 text-xl font-bold">Hasse Diagram</p>
-            <p>Definition: A Hasse diagram is a graphical representation of a partially ordered set, in the form of a drawing of its transitive reduction.</p>
-            <p className="prose my-4">Explanation: <a href="https://en.wikipedia.org/wiki/Hasse_diagram#Diagram_design">:Hasse Diagram</a></p>
-            <p>The tool given below generates the hasse diagram for divisor relation on the set of divisors of the number entered by the user.</p>
-            <p>
-                <a className="prose" href="https://en.wikipedia.org/wiki/Square-free_integer">:Square free numbers</a> will work the best as their graph is isomorphic to <a className="prose" href="https://en.wikipedia.org/wiki/Hypercube_graph">:Qn (n-dimensional cube).</a></p>
-            <p className="my-4"></p>
+                <div ref={containerRef} className="border rounded-lg overflow-hidden bg-white relative h-[500px]">
+                    {graphData.nodes.length > 0 ? (
+                        <ForceGraph2D
+                            width={dimensions.width}
+                            height={dimensions.height}
+                            graphData={graphData}
+                            nodeLabel="id"
+                            nodeColor={() => "#4f46e5"}
+                            linkDirectionalArrowLength={6}
+                            linkDirectionalArrowRelPos={1}
+                            dagMode="bu" // Bottom-Up layout for Hasse Diagram
+                            dagLevelDistance={60}
+                            nodeCanvasObject={(node: any, ctx: any, globalScale: any) => {
+                                const label = String(node.id);
+                                const fontSize = 14 / globalScale;
+                                ctx.font = `${fontSize}px Sans-Serif`;
+                                const textWidth = ctx.measureText(label).width;
+                                const bckgDimensions = [textWidth, fontSize].map((n: number) => n + fontSize * 0.2);
 
-            <input type="number" onChange={handleChange} placeholder="Enter the number" className="border border-gray-300 p-2 rounded-lg" />
-            {set.length > 0 && <div className="my-2">
-                <p>Divisor Set for {number}: {set.join(', ')}</p>
-                {isSquareFree(number) && <p>The number {number} is <span className="prose"><a className="" href="https://en.wikipedia.org/wiki/Square-free_integer" onLoad={(window as any).Nutshell.start()}>:Square-Free</a></span> It has {set.length} divisors. Thus it's graph is isomorphic to Q<sub>{Math.log2(set.length)}</sub> hypercube graph</p>}
-                {isLattice && <p>Given set is <span className="prose"><a className="" href="https://en.wikipedia.org/wiki/Lattice_(order)" onLoad={(window as any).Nutshell.start()}>:Lattice</a></span></p>}
+                                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                                ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, (node.y ?? 0) - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
 
-
-                <p>Hasse Diagram for {number}</p>
-                <p className="text-sm">Note: You'll need to drag the maximum element to the top of the diagram. We are working on fixing this issue.</p>
-            </div>}
-            <div className="flex flex-col gap-4">
-                <div id="graph">
-                    <ForceGraph2D
-                        width={document.body.clientWidth * 0.9}
-                        height={700}
-                        graphData={data}
-                        nodeAutoColorBy={"group"}
-                        minZoom={0.5}
-                        enableZoomInteraction={true}
-                        nodeCanvasObject={(node, ctx, globalScale) => {
-                            const label = node.id;
-                            // set y position based on divisor position
-                            const fontSize = 12 / globalScale;
-                            ctx.font = `${fontSize}px Sans-Serif`;
-                            const textWidth = ctx.measureText(String(label ?? '')).width;
-                            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
-
-                            ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-                            ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
-
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillStyle = '#000';
-                            ctx.fillText(String(label), node.x ?? 0, (node.y ?? 0));
-
-                            node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
-                        }}
-                        nodePointerAreaPaint={(node, color, ctx) => {
-                            ctx.fillStyle = color;
-                            const bckgDimensions = node.__bckgDimensions;
-                            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                            bckgDimensions && ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
-                        }}
-                        linkColor={() => 'rgba(0, 0, 0, 1)'}
-                    />
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillStyle = '#000';
+                                ctx.fillText(label, node.x ?? 0, node.y ?? 0);
+                            }}
+                        />
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                            Enter a number to generate the diagram.
+                        </div>
+                    )}
                 </div>
             </div>
-            <p className="m-4">&nbsp;&nbsp;</p>
-        </div>
+        </AlgorithmPageLayout>
     );
-}
+};
 
 export default POSET;

@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useState } from 'react';
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface NaiveSubStep {
     shift: number;
@@ -6,6 +9,7 @@ interface NaiveSubStep {
     pattern: string;
     match: boolean;
 }
+
 interface RabinKarpSubStep {
     shift: number;
     text: string;
@@ -16,33 +20,43 @@ interface RabinKarpSubStep {
     exact: boolean;
 }
 
+interface PatternMatchingData {
+    type: string;
+    substeps: NaiveSubStep[] | RabinKarpSubStep[];
+}
 
-const PatternMatchingTable = ({ data }) => {
-    if (!data || !data.substeps) return <p>No data available</p>;
+const PatternMatchingTable = ({ data }: { data: PatternMatchingData }) => {
+    if (!data || !data.substeps || data.substeps.length === 0) return <p className="text-muted-foreground p-4">No steps recorded.</p>;
 
     const { type, substeps } = data;
-    const columns = Object.keys(substeps[0]); // Get dynamic column headers
+    // Determine columns based on the first item type
+    const firstStep = substeps[0];
+    const columns = Object.keys(firstStep);
 
     return (
-        <div className="p-4">
-            <h2 className="text-xl font-semibold mb-2">{type} Algorithm</h2>
-            <div className="overflow-x-auto">
-                <table className="min-w-full border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-200">
+        <div className="space-y-2">
+            <h2 className="text-lg font-semibold">{type} Algorithm Steps</h2>
+            <div className="overflow-x-auto rounded-md border">
+                <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                        <tr>
                             {columns.map((col) => (
-                                <th key={col} className="px-4 py-2 border capitalize">{col}</th>
+                                <th key={col} className="px-4 py-2 text-left font-medium capitalize border-b">{col}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {substeps.map((step: NaiveSubStep|RabinKarpSubStep, index: number) => (
-                            <tr key={index} className="border">
-                                {columns.map((col) => (
-                                    <td key={col} className="px-4 py-2 border">
-                                        {typeof (step as any)[col] === "boolean" ? ((step as any)[col] ? "✅" : "❌") : (step as any)[col]}
-                                    </td>
-                                ))}
+                        {substeps.map((step, index) => (
+                            <tr key={index} className="border-b hover:bg-muted/50 transition-colors">
+                                {columns.map((col) => {
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    const val = (step as any)[col];
+                                    return (
+                                        <td key={col} className="px-4 py-2 border-r last:border-r-0">
+                                            {typeof val === "boolean" ? (val ? "✅" : "❌") : val}
+                                        </td>
+                                    );
+                                })}
                             </tr>
                         ))}
                     </tbody>
@@ -57,176 +71,198 @@ function StringMatching() {
     const [pattern, setPattern] = useState("");
     const [result, setResult] = useState<number[]>([]);
     const [error, setError] = useState("");
-    const [steps, setSteps] = useState<{ type: string; substeps: NaiveSubStep[] | RabinKarpSubStep[] }[]>([]);
+    const [steps, setSteps] = useState<PatternMatchingData[]>([]);
     const [option, setOption] = useState("naive");
-    const handleSubmit = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+
+    const codeSnippet = `// Naive Algorithm
+function naiveSearch(text, pattern) {
+    let m = pattern.length;
+    let n = text.length;
+    for (let i = 0; i <= n - m; i++) {
+        let j;
+        for (j = 0; j < m; j++)
+            if (text[i + j] != pattern[j])
+                break;
+        if (j == m)
+            console.log("Pattern found at index " + i);
+    }
+}`;
+
+    const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         setError("");
+
         if (!text || !pattern) {
             setError("Please enter both text and pattern.");
             return;
         }
+
         if (option === "naive") {
-            const naive = (text: string, pattern: string) => {
-                const tmp: { type: string; substeps: NaiveSubStep[] }[] = [];
-                tmp.push({ type: "Naive", substeps: [] });
-                const result: number[] = [];
-                for (let i = 0; i < text.length - pattern.length + 1; i++) {
+            const tmp: { type: string; substeps: NaiveSubStep[] }[] = [];
+            tmp.push({ type: "Naive", substeps: [] });
+            const localResult: number[] = [];
+
+            for (let i = 0; i <= text.length - pattern.length; i++) {
+                let j = 0;
+                while (j < pattern.length && text[i + j] === pattern[j]) {
+                    j++;
+                }
+                if (j === pattern.length) {
+                    localResult.push(i);
+                    tmp[0].substeps.push({
+                        shift: i,
+                        text: text.slice(i, i + pattern.length),
+                        pattern: pattern,
+                        match: true
+                    });
+                } else {
+                    tmp[0].substeps.push({
+                        shift: i,
+                        text: text.slice(i, i + pattern.length),
+                        pattern: pattern,
+                        match: false
+                    });
+                }
+            }
+            setSteps(tmp);
+            setResult(localResult);
+        } else if (option === "rabin-karp") {
+            const localResult: number[] = [];
+            const tmp: { type: string, substeps: RabinKarpSubStep[] }[] = [];
+            tmp.push({ type: "Rabin-Karp", substeps: [] });
+
+            const d = 256;
+            const q = 101;
+
+            const rabinKarpHash = (str: string, m: number) => {
+                let h = 0;
+                for (let i = 0; i < m; i++) {
+                    h = (d * h + str.charCodeAt(i)) % q;
+                }
+                return h;
+            };
+
+            const n = text.length;
+            const m = pattern.length;
+            const h = Math.pow(d, m - 1) % q; // Value of h for rolling hash
+            let p = 0; // hash value for pattern
+            let t = 0; // hash value for text
+
+            // Precompute hashes
+            for (let i = 0; i < m; i++) {
+                p = (d * p + pattern.charCodeAt(i)) % q;
+                t = (d * t + text.charCodeAt(i)) % q;
+            }
+
+            for (let i = 0; i <= n - m; i++) {
+                let matchFound = false;
+                let spurious = false;
+
+                if (p === t) {
                     let j = 0;
-                    while (j < pattern.length && text[i + j] === pattern[j]) {
+                    while (j < m && pattern[j] === text[i + j]) {
                         j++;
                     }
-                    if (j === pattern.length) {
-                        result.push(i);
-                        const naiveSubStep: NaiveSubStep = {
-                            shift: i,
-                            text: text.slice(i, i + pattern.length),
-                            pattern: pattern,
-                            match: true
-                        };
-                        tmp[0].substeps.push(naiveSubStep);
+                    if (j === m) {
+                        localResult.push(i);
+                        matchFound = true;
+                    } else {
+                        spurious = true;
                     }
-                    else {
-                        const naiveSubStep: NaiveSubStep = {
-                            shift: i,
-                            text: text.slice(i, i + pattern.length),
-                            pattern: pattern,
-                            match: false
-                        };
-                        tmp[0].substeps.push(naiveSubStep);
-                    }
+
+                    tmp[0].substeps.push({
+                        shift: i,
+                        text: text.slice(i, i + m),
+                        pattern: pattern,
+                        hash: p,
+                        remainder: t,
+                        spurious: spurious,
+                        exact: matchFound,
+                    });
+                } else {
+                    tmp[0].substeps.push({
+                        shift: i,
+                        text: text.slice(i, i + m),
+                        pattern: pattern,
+                        hash: p,
+                        remainder: t,
+                        spurious: false,
+                        exact: false,
+                    });
                 }
-                setSteps(tmp);
-                return result;
-            };
-            setResult(naive(text, pattern));
-        } else if (option === "rabin-karp") {
-            const rabinKarp = (text: string, pattern: string) => {
-                const result: number[] = [];
-                const tmp: { type: string, substeps: RabinKarpSubStep[] }[] = [];
-                tmp.push({ type: "Rabin-Karp", substeps: [] });
-                const d = 256;
-                const q = 101;
 
-                const rabinKarpHash = (str: string, m: number) => {
-                    let h = 0;
-                    for (let i = 0; i < m; i++) {
-                        h = (d * h + str.charCodeAt(i)) % q;
-                    }
-                    return h;
-                };
-
-                const rabinKarp = (text: string, pattern: string) => {
-                    const n = text.length;
-                    const m = pattern.length;
-                    const h = rabinKarpHash(pattern, m);
-                    let p = 0;
-                    let t = 0;
-                    for (let i = 0; i < m; i++) {
-                        p = (d * p + pattern.charCodeAt(i)) % q;
-                        t = (d * t + text.charCodeAt(i)) % q;
-                    }
-                    for (let i = 0; i <= n - m; i++) {
-                        if (p === t) {
-                            let j = 0;
-                            while (j < m && pattern[j] === text[i + j]) {
-                                j++;
-                            }
-                            if (j === m) {
-                                result.push(i);
-                                const rabinKarpSubStep: RabinKarpSubStep = {
-                                    shift: i,
-                                    text: text.slice(i, i + m),
-                                    pattern: pattern,
-                                    hash: p,
-                                    remainder: t,
-                                    spurious: false,
-                                    exact: true,
-                                };
-                                tmp[0].substeps.push(rabinKarpSubStep);
-                            } else {
-                                const rabinKarpSubStep: RabinKarpSubStep = {
-                                    shift: i,
-                                    text: text.slice(i, i + m),
-                                    pattern: pattern,
-                                    hash: p,
-                                    remainder: t,
-                                    spurious: true,
-                                    exact: false,
-                                };
-                                tmp[0].substeps.push(rabinKarpSubStep);
-                            }
-                        }
-                        else {
-                            const rabinKarpSubStep: RabinKarpSubStep = {
-                                shift: i,
-                                text: text.slice(i, i + m),
-                                pattern: pattern,
-                                hash: p,
-                                remainder: t,
-                                spurious: false,
-                                exact: false,
-                            };
-                            tmp[0].substeps.push(rabinKarpSubStep);
-                        }
-                        if (i < n - m) {
-                            t = (d * (t - text.charCodeAt(i) * Math.pow(d, m - 1)) + text.charCodeAt(i + m)) % q;
-                            if (t < 0) {
-                                t = t + q;
-                            }
-                        }
-                    }
-                };
-                rabinKarp(text, pattern);
-                setSteps(tmp);
-                return result;
+                if (i < n - m) {
+                    t = (d * (t - text.charCodeAt(i) * h) + text.charCodeAt(i + m)) % q;
+                    if (t < 0) t = (t + q);
+                }
             }
-            setResult(rabinKarp(text, pattern));
+            setSteps(tmp);
+            setResult(localResult);
         }
-    }
-
-    useEffect(() => {
-        console.log(steps);
-    }, [steps]);
+    };
 
     return (
-        <div className='m-4 gap-4 justify-center items-center flex flex-col'>
-            <div className="w-[80%]">
-                <h1 className="font-bold text-3xl my-4">String Matching</h1>
-                <form className="flex flex-col gap-4">
-                    <label>
-                        <span className="mr-2">Text</span>
-                        <input type="text" name="text" id="text" className='border p-2 rounded-md' onChange={(e) => { setText(e.target.value.trim()) }} />
-                    </label>
-                    <label>
-                        <span className="mr-2">Pattern</span>
-                        <input type="text" name="pattern" id="pattern" className='border p-2 rounded-md' onChange={(e) => { setPattern(e.target.value.trim()) }} />
-                    </label>
-                    <label>
-                        <span className="mr-2">Algorithm</span>
+        <AlgorithmPageLayout
+            title="String Matching"
+            description="Finds all occurrences of a pattern string in a text string."
+            resources={[
+                { label: "What is String Searching", url: "https://en.wikipedia.org/wiki/String-searching_algorithm" },
+                { label: "What is Rabin-Karp Algorithm", url: "https://en.wikipedia.org/wiki/Rabin%E2%80%93Karp_algorithm" }
+            ]}
+            codeSnippet={codeSnippet}
+            controls={
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <label htmlFor="text" className="text-sm font-medium leading-none">Text</label>
+                        <Input
+                            id="text"
+                            placeholder="Enter text..."
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="pattern" className="text-sm font-medium leading-none">Pattern</label>
+                        <Input
+                            id="pattern"
+                            placeholder="Enter pattern..."
+                            value={pattern}
+                            onChange={(e) => setPattern(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="algorithm" className="text-sm font-medium leading-none">Algorithm</label>
                         <select
-                            className="border p-2 rounded-md"
-                            value={option} onChange={(e) => setOption(e.target.value)}>
+                            id="algorithm"
+                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            value={option}
+                            onChange={(e) => setOption(e.target.value)}
+                        >
                             <option value="naive">Naive</option>
-                            <option value={"rabin-karp"}>Rabin-Karp</option>
+                            <option value="rabin-karp">Rabin-Karp</option>
                         </select>
-                    </label>
-                    <button
-                        className="bg-blue-500 text-white p-2 rounded-md"
-                        onClick={handleSubmit}>Submit</button>
+                    </div>
+
+                    {error && <p className="text-sm text-destructive">{error}</p>}
+
+                    <Button type="submit" className="w-full">
+                        Find Pattern
+                    </Button>
                 </form>
-                {error && <p className="text-red-500">{error}</p>}
+            }
+        >
+            <div className="space-y-6">
                 {result.length > 0 && (
-                    <div>
-                        <h2>Result</h2>
-                        <p>Pattern found at index: {result.join(", ")}</p>
+                    <div className="bg-green-50/50 p-4 border rounded-lg">
+                        <h3 className="font-bold text-green-900 mb-2">Result</h3>
+                        <p>Pattern found at indices: <strong>{result.join(", ")}</strong></p>
                     </div>
                 )}
                 {steps.map((step, index) => (
                     <PatternMatchingTable key={index} data={step} />
                 ))}
             </div>
-        </div>
+        </AlgorithmPageLayout>
     );
 }
 

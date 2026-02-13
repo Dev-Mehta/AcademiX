@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../components/accordion"
-import { CopyBlock, dracula } from 'react-code-blocks'
+import React, { useState } from 'react';
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
+interface Step {
+    key: string;
+    value: string;
+    type: 'split' | 'merge' | 'single' | 'start';
+}
 
 function MergeSortAlgorithm() {
     const codeSnippet = `function merge(arr, left, mid, right) {
@@ -18,8 +24,7 @@ function MergeSortAlgorithm() {
     for (let j = 0; j < n2; j++)
         R[j] = arr[mid + 1 + j];
 
-    let i = 0, j = 0;
-    let k = left;
+    let i = 0, j = 0, k = left;
 
     // Merge the temp arrays back into arr[left..right]
     while (i < n1 && j < n2) {
@@ -32,79 +37,57 @@ function MergeSortAlgorithm() {
         }
         k++;
     }
-
-    // Copy the remaining elements of L[], if there are any
-    while (i < n1) {
-        arr[k] = L[i];
-        i++;
-        k++;
-    }
-
-    // Copy the remaining elements of R[], if there are any
-    while (j < n2) {
-        arr[k] = R[j];
-        j++;
-        k++;
-    }
-}
-
-function mergeSort(arr, left, right) {
-    if (left >= right)
-        return;
-
-    const mid = Math.floor(left + (right - left) / 2);
-    mergeSort(arr, left, mid);
-    mergeSort(arr, mid + 1, right);
-    merge(arr, left, mid, right);
+    // ... Copy remaining elements
 }`;
+
     const [numbers, setNumbers] = useState("");
-    const [steps, setSteps] = useState([]);
+    const [steps, setSteps] = useState<Step[]>([]);
+    const [error, setError] = useState("");
 
-    function toIntArray(intString) {
-        const strArray = intString.split(",");
-        const intArray = strArray.map((num) => {
-            try {
-                const parsed = parseInt(num.trim(), 10);
-                if (isNaN(parsed)) {
-                    throw new Error(`Invalid number: "${num.trim()}"`);
-                }
-                return parsed;
-            } catch (error) {
-                console.error((error).message);
-                return Number.MIN_VALUE;
-            }
-        });
-
-        return intArray;
+    function toIntArray(intString: string) {
+        if (!intString.trim()) return [];
+        return intString.split(',').map(num => {
+            const parsed = parseInt(num.trim(), 10);
+            return isNaN(parsed) ? null : parsed;
+        }).filter((num): num is number => num !== null);
     }
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
-        console.log("Handling submit");
-        const arr = toIntArray(numbers); // Convert input numbers to an integer array
-        const steps = [];
-        mergeSort(arr, 0, arr.length - 1, steps);
-        setSteps(steps);
+        setError("");
+        const arr = toIntArray(numbers);
+
+        if (arr.length === 0) {
+            setError("Please enter a valid comma-separated list of numbers.");
+            setSteps([]);
+            return;
+        }
+
+        const newSteps: Step[] = [];
+        newSteps.push({ key: "Start", value: `[${arr.join(', ')}]`, type: 'start' });
+
+        mergeSort(arr, 0, arr.length - 1, newSteps);
+        setSteps(newSteps);
     };
 
-    function merge(arr, left, mid, right, steps) {
+    function merge(arr: number[], left: number, mid: number, right: number, steps: Step[]) {
         const n1 = mid - left + 1;
         const n2 = right - mid;
-    
+
         const L = new Array(n1);
         const R = new Array(n2);
-    
+
         for (let i = 0; i < n1; i++) L[i] = arr[left + i];
         for (let j = 0; j < n2; j++) R[j] = arr[mid + 1 + j];
-    
+
         let i = 0, j = 0, k = left;
-    
-        // Log merging step with involved values
-        steps.push({ 
-            key: `Merging: [${L.join(',')}] and [${R.join(',')}]`, 
-            value: `[${arr.slice(left, right + 1).join(',')}]`
+
+        steps.push({
+            key: `Merging`,
+            value: `[${L.join(', ')}] and [${R.join(', ')}]`,
+            type: 'merge'
         });
-    
+
         while (i < n1 && j < n2) {
             if (L[i] <= R[j]) {
                 arr[k] = L[i];
@@ -115,102 +98,116 @@ function mergeSort(arr, left, right) {
             }
             k++;
         }
-    
+
         while (i < n1) {
             arr[k] = L[i];
             i++;
             k++;
         }
-    
+
         while (j < n2) {
             arr[k] = R[j];
             j++;
             k++;
         }
-    
-        // Log the merged result
-        steps.push({ 
-            key: `Merged`, 
-            value: `[${arr.slice(left, right + 1).join(',')}]`
+
+        steps.push({
+            key: `Merged Result`,
+            value: `[${arr.slice(left, right + 1).join(', ')}]`,
+            type: 'merge'
         });
     }
-    
-    function mergeSort(arr, left, right, steps) {
+
+    function mergeSort(arr: number[], left: number, right: number, steps: Step[]) {
         if (left >= right) {
-            // Avoid repeating the same single element multiple times
-            steps.push({ 
-                key: `Single`, 
-                value: `[${arr[left]}]`
+            steps.push({
+                key: `Single Element`,
+                value: `[${arr[left]}]`,
+                type: 'single'
             });
             return;
         }
-    
+
         const mid = Math.floor((left + right) / 2);
-    
-        // Log splitting step with involved values
-        const currentArray = `[${arr.slice(left, right + 1).join(',')}]`;
-        const leftPart = `[${arr.slice(left, mid + 1).join(',')}]`;
-        const rightPart = `[${arr.slice(mid + 1, right + 1).join(',')}]`;
-        steps.push({ 
-            key: `Splitting`, 
-            value: `${currentArray} -> ${leftPart} and ${rightPart}`
+
+        const currentArray = `[${arr.slice(left, right + 1).join(', ')}]`;
+        const leftPart = `[${arr.slice(left, mid + 1).join(', ')}]`;
+        const rightPart = `[${arr.slice(mid + 1, right + 1).join(', ')}]`;
+
+        steps.push({
+            key: `Splitting`,
+            value: `${currentArray} -> ${leftPart} & ${rightPart}`,
+            type: 'split'
         });
-    
+
         mergeSort(arr, left, mid, steps);
         mergeSort(arr, mid + 1, right, steps);
         merge(arr, left, mid, right, steps);
     }
-    
-    
 
     return (
-        <div className='m-4 gap-4 justify-center items-center flex flex-col'>
-            <div className="w-[80%]">
-                <h1 className="text-2xl font-bold">Merge Sort</h1>
-                <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Merge_sort'>:Explanation</a></p>
-                <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Merge_sort#Algorithm'>:Implementation</a></p>
-
-                <Accordion type="single" collapsible className="">
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger className="text-xl font-bold">Algorithm?</AccordionTrigger>
-                        <AccordionContent className='font-mono w-full'>
-
-                            <CopyBlock
-                                text={codeSnippet}
-                                language="JavaScript"
-                                theme={dracula}
-                                codeBlock></CopyBlock>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-                <form className='flex flex-col gap-2'>
-                    Array (comma seperated): <input type="text" name="arr" id="arr" className='border p-2 rounded-md' onChange={(e) => { setNumbers(e.target.value) }} />
-                    <button type='button' className='bg-blue-500 text-white p-2 rounded-md' onClick={(event) => { handleSubmit(event) }}>Calculate</button>
+        <AlgorithmPageLayout
+            title="Merge Sort"
+            description="Divide and Conquer algorithm. It divides the input array into two halves, calls itself for the two halves, and then merges the two sorted halves."
+            resources={[
+                { label: "What is Merge Sort", url: "https://en.wikipedia.org/wiki/Merge_sort" },
+                
+            ]}
+            codeSnippet={codeSnippet}
+            controls={
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <label htmlFor="arr" className="text-sm font-medium leading-none">
+                            Array (comma separated)
+                        </label>
+                        <Input
+                            id="arr"
+                            placeholder="e.g. 12, 11, 13, 5, 6, 7"
+                            value={numbers}
+                            onChange={(e) => setNumbers(e.target.value)}
+                        />
+                        {error && <p className="text-sm text-destructive">{error}</p>}
+                    </div>
+                    <Button type="submit" className="w-full">
+                        Sort
+                    </Button>
                 </form>
-                <div id="output">
-                    <table className="border-collapse font-mono my-4 border border-slate-400 w-full shadow-lg rounded-md">
+            }
+        >
+            {steps.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-sm">
                         <thead>
-                            <tr>
-                                <th className="px-2 border border-slate-400">Step</th>
-                                <th className="px-2 border border-slate-400">Array</th>
+                            <tr className="bg-muted text-left">
+                                <th className="p-3 font-medium border-b w-1/4">Action</th>
+                                <th className="p-3 font-medium border-b">Detail</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {steps.length > 0 &&
-                                steps.map((step, index) => (
-                                    <tr key={index} className='odd:bg-slate-100 even:bg-slate-200 hover:bg-slate-300 transition duration-200'>
-                                        <td className="px-4 py-2 border border-slate-400">{step.key}</td>
-                                        <td className="px-4 py-2 border border-slate-400">{step.value}</td>
-                                    </tr>
-                                ))
-                            }
+                            {steps.map((step, index) => (
+                                <tr key={index} className="border-b hover:bg-muted/50 transition-colors">
+                                    <td className="p-3">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wide
+                                            ${step.type === 'split' ? 'bg-blue-100 text-blue-800' :
+                                                step.type === 'merge' ? 'bg-purple-100 text-purple-800' :
+                                                    step.type === 'single' ? 'bg-gray-100 text-gray-800' :
+                                                        'bg-green-100 text-green-800'}`}>
+                                            {step.key}
+                                        </span>
+                                    </td>
+                                    <td className="p-3 font-mono text-sm">{step.value}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
-
                 </div>
-            </div>
-        </div>
-    )
+            ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <p>Enter numbers and click "Sort" to see the visualization.</p>
+                </div>
+            )}
+        </AlgorithmPageLayout>
+    );
 }
 
-export default MergeSortAlgorithm
+export default MergeSortAlgorithm;

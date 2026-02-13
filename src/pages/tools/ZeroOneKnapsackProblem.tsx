@@ -1,194 +1,225 @@
-import { useState } from 'react'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../components/accordion"
-import { CopyBlock, dracula } from 'react-code-blocks';
-function ZeroOneKnapsackProblem() {
-    const codeSnippet = `// Returns the maximum value that
-// can be put in a knapsack of capacity W
+import React, { useState } from 'react';
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
-function knapsack(W, val, wt) {
+interface DPResult {
+    dp: number[][];
+    maxProfit: number;
+    selectedItems: number[]; // Indices of selected items
+}
+
+function ZeroOneKnapsackProblem() {
+    const codeSnippet = `function knapsack(W, val, wt) {
     let n = wt.length;
     let dp = Array.from({ length: n + 1 }, () => Array(W + 1).fill(0));
 
     // Build table dp[][] in bottom-up manner
     for (let i = 0; i <= n; i++) {
         for (let j = 0; j <= W; j++) {
-
-            // If there is no item or the knapsack's capacity is 0
             if (i === 0 || j === 0)
                 dp[i][j] = 0;
             else {
-                let pick = 0;
-
-                // Pick ith item if it does not exceed the capacity of knapsack
                 if (wt[i - 1] <= j)
-                    pick = val[i - 1] + dp[i - 1][j - wt[i - 1]];
-
-                // Don't pick the ith item
-                let notPick = dp[i - 1][j];
-
-                dp[i][j] = Math.max(pick, notPick);
+                    dp[i][j] = Math.max(val[i - 1] + dp[i - 1][j - wt[i - 1]], dp[i - 1][j]);
+                else
+                    dp[i][j] = dp[i - 1][j];
             }
         }
     }
     return dp[n][W];
-}
-`
-    const [matrix, setMatrix] = useState<number[][]>([]);
+}`;
+
     const [weights, setWeights] = useState("");
     const [profits, setProfits] = useState("");
-    const [capacity, setCapacity] = useState(0);
-    const [displayError, setDisplayError] = useState<string | boolean>(false)
-    const [finalProfit, setFinalProfit] = useState<number | null>(null)
-    const [selected, setSelected] = useState<number[]>([])
-    function toIntArray(intString: string) {
-        const strArray = intString.split(','); // Splitting the string into an array
-        const intArray = strArray.map(num => {
-            try {
-                const parsed = parseInt(num.trim(), 10);
-                if (isNaN(parsed)) {
-                    throw new Error(`Invalid number: "${num.trim()}"`);
-                }
-                return parsed;
-            } catch (error: unknown) {
-                console.error((error as Error).message);
-                return null; // or handle it as needed
-            }
-        });
+    const [capacity, setCapacity] = useState("");
+    const [error, setError] = useState("");
 
-        return intArray;
+    const [result, setResult] = useState<DPResult | null>(null);
+
+    function toIntArray(intString: string) {
+        if (!intString.trim()) return [];
+        return intString.split(',').map(num => {
+            const parsed = parseInt(num.trim(), 10);
+            return isNaN(parsed) ? null : parsed;
+        }).filter((num): num is number => num !== null);
     }
-    const zeroOneKnapsack = (W: number, wt: number[], val: number[]) => {
+
+    const calculateZeroOneKnapsack = (W: number, wt: number[], val: number[]) => {
         const n = wt.length;
         const dp = Array.from({ length: n + 1 }, () => Array(W + 1).fill(0));
 
-        // Build table dp[][] in bottom-up manner
         for (let i = 0; i <= n; i++) {
             for (let j = 0; j <= W; j++) {
-
-                // If there is no item or the knapsack's capacity is 0
                 if (i === 0 || j === 0)
                     dp[i][j] = 0;
                 else {
-                    let pick = 0;
-
-                    // Pick ith item if it does not exceed the capacity of knapsack
-                    if (wt[i - 1] <= j)
-                        pick = val[i - 1] + dp[i - 1][j - wt[i - 1]];
-
-                    // Don't pick the ith item
-                    const notPick = dp[i - 1][j];
-
-                    dp[i][j] = Math.max(pick, notPick);
+                    if (wt[i - 1] <= j) {
+                        dp[i][j] = Math.max(val[i - 1] + dp[i - 1][j - wt[i - 1]], dp[i - 1][j]);
+                    } else {
+                        dp[i][j] = dp[i - 1][j];
+                    }
                 }
             }
         }
 
-        setMatrix(dp)
-        const selected = Array(n).fill(0);
+        // Backtracking to find selected items
+        const selected: number[] = [];
         let w = W;
         for (let i = n; i > 0; i--) {
             if (dp[i][w] !== dp[i - 1][w]) {
-                selected[i - 1] = 1;  // Mark this item as selected
-                w -= wt[i - 1];  // Reduce the remaining capacity
+                selected.push(i - 1); // Store index of item (0-based)
+                w -= wt[i - 1];
             }
         }
-        setSelected(selected)
-        return dp[n][W];
-    }
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault()
-        const weight_arr = toIntArray(weights).filter((num): num is number => num !== null);
-        const profit_arr = toIntArray(profits).filter((num): num is number => num !== null);
-        if (weight_arr.length == profit_arr.length) {
-            setDisplayError(false)
 
-            const max_profit = zeroOneKnapsack(capacity, weight_arr, profit_arr);
-            console.log(max_profit);
-            setFinalProfit(max_profit);
-        } else {
-            setFinalProfit(null);
-            setDisplayError("The number of items in weights and profits array should be equal.")
+        return {
+            dp,
+            maxProfit: dp[n][W],
+            selectedItems: selected.reverse() // Reverse to show in order of appearance
+        };
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setResult(null);
+
+        const weightArr = toIntArray(weights);
+        const profitArr = toIntArray(profits);
+        const cap = parseInt(capacity, 10);
+
+        if (weightArr.length === 0 || profitArr.length === 0) {
+            setError("Weights and Profits arrays should not be empty.");
+            return;
         }
-    }
+
+        if (weightArr.length !== profitArr.length) {
+            setError("The number of weights and profits must be equal.");
+            return;
+        }
+
+        if (isNaN(cap) || cap < 0) {
+            setError("Capacity must be a non-negative number.");
+            return;
+        }
+
+        const res = calculateZeroOneKnapsack(cap, weightArr, profitArr);
+        setResult(res);
+    };
 
     return (
+        <AlgorithmPageLayout
+            title="0/1 Knapsack Problem"
+            description="Dynamic Programming approach where items cannot be broken. We either take an item or leave it."
+            resources={[
+                { label: "What is Knapsack Problem", url: "https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem" },
+                // { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/" }
+            ]}
+            codeSnippet={codeSnippet}
+            controls={
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <label htmlFor="weights" className="text-sm font-medium leading-none">
+                            Weights (comma separated)
+                        </label>
+                        <Input
+                            id="weights"
+                            placeholder="e.g. 10, 20, 30"
+                            value={weights}
+                            onChange={(e) => setWeights(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="profits" className="text-sm font-medium leading-none">
+                            Profits (comma separated)
+                        </label>
+                        <Input
+                            id="profits"
+                            placeholder="e.g. 60, 100, 120"
+                            value={profits}
+                            onChange={(e) => setProfits(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="capacity" className="text-sm font-medium leading-none">
+                            Capacity
+                        </label>
+                        <Input
+                            id="capacity"
+                            type="number"
+                            placeholder="e.g. 50"
+                            value={capacity}
+                            onChange={(e) => setCapacity(e.target.value)}
+                        />
+                    </div>
 
-        <div className='m-4 gap-4 justify-center items-center flex flex-col'>
-            <div className="w-[80%]">
-                <h1 className="text-2xl font-bold">Zero One Knapsack Problem (Bottom-Up DP)</h1>
-                <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Knapsack_problem'>:Explanation</a></p>
-                <p className='text-xl my-2 prose'><a href='https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem'>:Pseudocode</a></p>
-                <Accordion type="single" collapsible className="">
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger className="text-xl font-bold">Algorithm</AccordionTrigger>
-                        <AccordionContent className=' w-full font-mono'>
+                    {error && <p className="text-sm text-destructive">{error}</p>}
 
-                            <CopyBlock
-                                text={codeSnippet}
-                                language="JavaScript"
-                                theme={dracula}
-                                codeBlock></CopyBlock>
-
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-                <h1 className='text-lg font-bold my-2'>0-1 Knapsack Solver</h1>
-                <form className='flex flex-col gap-2'>
-                    Weights (comma seperated): <input type="text" name="weights" id="weights" required className='border p-2 rounded-md' onChange={(e) => { setWeights(e.target.value) }} />
-                    Profits (comma seperated): <input type="text" name="profits" id="profits" required className='border p-2 rounded-md' onChange={(e) => { setProfits(e.target.value) }} />
-                    Capacity: <input type="number" name="capacity" id="capacity" required className='border p-2 rounded-md' onChange={(e) => { setCapacity(parseInt(e.target.value)) }} />
-                    <p className='text-xs'>Make sure that number of weights and profits are equal otherwise a error will be shown.</p>
-                    <button type='button' className='bg-blue-500 text-white p-2 rounded-md' onClick={(e) => { handleSubmit(e) }}>Calculate</button>
-                    {displayError && (
-                        <div className='bg-red-200 text-red-600 p-3 rounded-md'>
-                            {displayError}
-                        </div>
-                    )}
-
-
+                    <Button type="submit" className="w-full">
+                        Calculate Max Profit
+                    </Button>
                 </form>
-                <div className='py-4'>
-                    {finalProfit && (<>Final Profit: {finalProfit}</>)}
-                </div>
-                {matrix.length > 0 && (
-                    <div className="overflow-x-auto py-2">
-                        <table className="border-collapse border border-gray-300 w-full text-center min-w-max">
-                            <tbody>
-                                {matrix.map((row: number[], rowIndex) => (
-                                    <tr key={rowIndex} className="odd:bg-gray-100 even:bg-gray-200">
-                                        {row.map((i, colIndex) => (
-                                            <td
-                                                key={colIndex}
-                                                className="border border-gray-300 p-2 text-gray-700 whitespace-nowrap">
-                                                {i}
-                                            </td>
+            }
+        >
+            {result ? (
+                <div className="space-y-6">
+                    <div className="bg-green-50/50 p-4 border rounded-lg">
+                        <h3 className="font-bold text-green-900 mb-2">Maximum Profit</h3>
+                        <div className="flex justify-between items-center">
+                            <p className="text-3xl font-mono">{result.maxProfit}</p>
+                            <div className="text-right">
+                                <p className="text-sm font-medium">Selected Items (Indices):</p>
+                                <div className="flex gap-1 justify-end mt-1">
+                                    {result.selectedItems.map(idx => (
+                                        <span key={idx} className="bg-green-200 text-green-800 px-2 py-1 rounded text-xs font-bold">
+                                            Item {idx + 1}
+                                        </span>
+                                    ))}
+                                    {result.selectedItems.length === 0 && <span className="text-muted-foreground text-sm">None</span>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <h3 className="font-bold">DP Table</h3>
+                        <p className="text-xs text-muted-foreground">Rows represent items (0 to n), Columns represent capacity (0 to W).</p>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse text-sm text-center">
+                                <thead>
+                                    <tr className="bg-muted">
+                                        <th className="p-2 border">Item \ Cap</th>
+                                        {result.dp[0].map((_, j) => (
+                                            <th key={j} className="p-2 border min-w-[2rem]">{j}</th>
                                         ))}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {result.dp.map((row, i) => (
+                                        <tr key={i} className={`border-b ${i > 0 && result.selectedItems.includes(i - 1) ? "bg-green-50" : ""}`}>
+                                            <td className="p-2 border font-medium bg-muted/30">
+                                                {i === 0 ? "Empty" : `Item ${i}`}
+                                            </td>
+                                            {row.map((val, j) => (
+                                                <td key={j} className={`p-2 border ${i === result.dp.length - 1 && j === row.length - 1 ? 'bg-yellow-100 font-bold border-yellow-400' : ''}`}>
+                                                    {val}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                )}
-                {selected.length > 0 && (
-                    <div className='py-3'>
-                        Items Selected:
-                        <table className="border-collapse border border-gray-300 w-full text-center">
-                            <tr className='bg-gray-500'>
-                                {selected.map((_, index) =>
-                                    (<th className="border border-gray-300 p-2 text-gray-100">{index + 1}</th>)
-                                )}
-                            </tr>
-                            <tr className='bg-gray-100'>
-                                {selected.map((i) =>
-                                    (<td className="border border-gray-300 p-2 text-gray-700">{i}</td>)
-                                )}
-                            </tr>
-                        </table>
-                    </div>
-                )}
-            </div>
-        </div>
-    )
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <p>Enter details and click "Calculate" to see the result.</p>
+                </div>
+            )}
+        </AlgorithmPageLayout>
+    );
 }
 
-export default ZeroOneKnapsackProblem
+export default ZeroOneKnapsackProblem;

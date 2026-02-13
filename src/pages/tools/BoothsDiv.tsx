@@ -1,188 +1,336 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { addBinary, negate } from './BoothsAlgorithm';
 
 const subtractBinary = (a: string, b: string) => {
     return addBinary(a, negate(b));
 };
 
-const addBinary = (a: string, b: string) => {
-    let sum = '';
-    let carry = 0;
-    for (let i = a.length - 1; i >= 0; i--) {
-        const bitA = a[i];
-        const bitB = b[i];
-        const bitSum = parseInt(bitA) + parseInt(bitB) + carry;
-        sum = (bitSum % 2) + sum;
-        carry = Math.floor(bitSum / 2);
-    }
-    return sum;
-};
-
-const negate = (num: string) => {
-    let neg = '';
-    for (let i = 0; i < num.length; i++) {
-        neg += num[i] === '0' ? '1' : '0';
-    }
-    return addBinary(neg, '0'.repeat(num.length - 1) + '1');
-};
+interface DivStep {
+    divisor: string;
+    ac: string;
+    qr: string;
+    operation: string;
+    description?: string;
+}
 
 const BoothsDivisionAlgorithm = () => {
-    const [result, setResult] = useState<any[]>([]);
-    const [num1Bin, setNum1Bin] = useState<string>('');
-    const [num2Bin, setNum2Bin] = useState<string>('');
+    const [result, setResult] = useState<DivStep[]>([]);
+
+    // Inputs (Decimal Strings)
+    const [dividendDec, setDividendDec] = useState("");
+    const [divisorDec, setDivisorDec] = useState("");
+
+    // Logic (Binary Strings)
+    const [num1Bin, setNum1Bin] = useState<string>(''); // Dividend
+    const [num2Bin, setNum2Bin] = useState<string>(''); // Divisor
+
+    // Results
     const [remainder, setRemainder] = useState<string>('');
     const [quotient, setQuotient] = useState<string>('');
-    const [opr, setOpr] = useState<boolean>(false);
-    const [steps, setSteps] = useState<any[]>([]);
+    const [isCalculated, setIsCalculated] = useState<boolean>(false);
+    const [steps, setSteps] = useState<DivStep[]>([]);
+    const [error, setError] = useState("");
+
     const shiftLeft = (ac: string, qr: string) => {
-        return ac.substring(1) + qr.charAt(0)
+        // Shift AC and QR left as a combined unit.
+        // AC gets shifted left, LSB comes from MSB of QR.
+        // QR gets shifted left.
+        const combined = ac + qr;
+        const shifted = combined.substring(1) + '_'; // Placeholder
+        // Split back
+        // But original logic was: ac = ac.substring(1) + qr.charAt(0);
+        return ac.substring(1) + qr.charAt(0);
     };
 
-    const boothDivisionAlgorithm = (num1: string, num2: string) => {
-        const steps: any = [];
-        let ac = '0'.repeat(num1.length);
-        let qr = num1;
-        const negM = num2
+    const performDivision = (dividendBin: string, divisorBin: string) => {
+        const stepsLog: DivStep[] = [];
 
-        steps.push({ num2, ac, qr, operation: 'Initial' });
+        // Ensure lengths match typically or standardized to N bits.
+        // Original code: ac = '0'.repeat(num1.length).
+        // Let's stick to 8 bit logic or length of input.
+        // If inputs are 8-bit, we proceed.
 
-        for (let i = 0; i < num1.length; i++) {
-            ac = shiftLeft(ac, qr);
-            qr = qr.substring(1) + '_';
-            steps.push({ num2, ac, qr, operation: 'Shift Left' });
+        const n = dividendBin.length;
+        let ac = '0'.repeat(n);
+        let qr = dividendBin;
+        const m = divisorBin;
+        const negM = negate(m); // Two's complement of divisor for subtraction
 
+        stepsLog.push({ divisor: m, ac, qr, operation: 'Initialize' });
 
+        for (let i = 0; i < n; i++) {
+            // 1. Shift Left
+            ac = ac.substring(1) + qr.charAt(0);
+            qr = qr.substring(1) + '_'; // Temporary LSB
 
-            ac = subtractBinary(ac, negM);
-            steps.push({ num2, ac, qr, operation: 'Subtracted M' });
+            stepsLog.push({ divisor: m, ac, qr, operation: 'Shift Left', description: 'Shift AC and QR left' });
 
-            if (ac[0] === '1') {
-                qr = qr.substring(0, qr.length - 1) + '0';
-                ac = addBinary(ac, num2); // Restore ac
-                steps.push({ num2, ac, qr, operation: 'Restored AC' });
-            } else {
-                qr = qr.substring(0, qr.length - 1) + '1';
-                // steps.push({ num2,ac, qr, operation: 'Subtracted M' });
-            }
-        }
+            // 2. Subtract M (Add -M)
+            const acAfterSub = addBinary(ac, negM);
 
-        setRemainder(ac)
-        setQuotient(qr)
-        setOpr(true)
+            // Check sign of AC (MSB)
+            // Original logic used subtractBinary direct.
+            // Let's use the helper.
 
-        steps.push({ num2, ac, qr, operation: 'Result' });
-        return steps;
-    };
+            // Note: addBinary/negate logic assumes fixed width usually? 
+            // If result overflows, we might need trimming.
+            // addBinary returns string of same length?
+            // Let's verify addBinary behavior from BoothsAlgorithm.
+            // It loops a.length-1 to 0. It preserves length.
 
-    useEffect(() => {
-        if (num1Bin.trim() === '' || num2Bin.trim() === '') return;
-        //     let new_num2 ='0'.repeat(num1Bin.length-num2Bin.length)+num2Bin
-        // setNum2Bin(new_num2)
-        console.log(parseInt(parseInt(num1Bin, 2).toString(10)))
+            let tempAc = acAfterSub;
 
-        const r = boothDivisionAlgorithm(num1Bin, num2Bin);
-        setSteps(r);
-        setResult([r[0]]);
-    }, [num1Bin, num2Bin]);
+            // Check if negative. logic: MSB is 1.
+            if (tempAc[0] === '1') {
+                // Negative
+                // Restore logic: AC = AC + M
+                stepsLog.push({ divisor: m, ac: tempAc, qr, operation: 'Subtract M', description: `AC = AC - M (${ac} - ${m})` });
 
-    const numToBin = (num: string) => {
-        if (num.trim() === '' || num.trim() === '-') return '';
-        num = num.trim();
-        const numBin = parseInt(num, 10).toString(2);
+                // RESTORE (Original logic says "Restored AC" if ac[0] === '1')
+                // Original logic: "qr = qr... + '0'"
+                // "ac = addBinary(ac, num2)" (Restoring)
 
-        if (numBin.charAt(0) === '-' && numBin !== '-') {
-            let pos = numBin.substring(1);
-            if (pos.length < 8) {
-                pos = '0'.repeat(8 - pos.length) + pos;
-            }
-            const comp = negate(pos);
-            return comp;
-        }
-        if (numBin.length < 8) {
-            return '0'.repeat(8 - numBin.length) + numBin;
-        }
-        return numBin;
-    };
+                // Wait, original logic lines 56-62:
+                // ac = subtractBinary(ac, negM); -> This line effectively does AC = AC - (-M)? Or AC - M?
+                // `const subtractBinary = (a, b) => addBinary(a, negate(b))`
+                // So subtractBinary(ac, negM) -> add(ac, negate(negate(M))) -> add(ac, M). 
+                // That seems wrong if `negM` implies `-M`.
+                // If `m` is divisor, `negM` is `-Divisor`.
+                // We want AC - Divisor. So AC + (-Divisor).
+                // So AC + negM.
+                // The original code `subtractBinary(ac, negM)` means `ac - negM`. `ac - (-Divisor)` = `ac + Divisor`.
+                // This seems contradictory to standard restoring division which subtracts first.
+                // Let's assume standard restoring division:
+                // Step 1: Shift.
+                // Step 2: Subtract M from AC. (AC = AC - M).
+                // Step 3: Check AC. If < 0, Restore (AC = AC + M), set q0 = 0. Else set q0 = 1.
 
-    const handleNum1Bin = (e: FormEvent<HTMLInputElement>) => {
-        setNum1Bin(numToBin(e.currentTarget.value));
-    };
-    const handleNum2Bin = (e: FormEvent<HTMLInputElement>) => {
-        setNum2Bin(numToBin(e.currentTarget.value));
-    };
-    const showNext = () => {
-        if (result.length === steps.length) return;
-        setResult([...result, steps[result.length]]);
-    };
-    const clearEverything = () => {
-        setNum1Bin('');
-        setNum2Bin('');
-        setResult([]);
-        setSteps([]);
-        setRemainder('');
-        setQuotient('');
-        setOpr(false);
-    };
-    const autoShowNext = () => {
-        let i = 0;
-        const interval = setInterval(() => {
-            if (i === steps.length) {
-                clearInterval(interval);
-                return;
-            }
-            setResult(steps.slice(0, i + 1));
-            i++;
-        }, 1000);
-    }
-    return (<>
-        <div className='m-4'>
-            <p className='text-3xl my-4 font-extrabold'>Booth's Division Algorithm</p>
-            <p className='text-xl prose'><a href="https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division">:What is Booth's Division Algorithm</a></p>
-            <p className='my-4 text-2xl font-bold border-b-2 border-b-indigo-400 w-28'>Calculator</p>
-            <form className='flex flex-col gap-2 w-96'>
-                Dividend: <input value={parseInt(num1Bin, 2)} type='number' placeholder='Enter the dividend' onChange={handleNum1Bin} className='border p-2 rounded-md' />
-                Divisor: <input value={parseInt(num2Bin,2)} type='number' placeholder='Enter the divisor' onChange={handleNum2Bin} className='border p-2 rounded-md' />
-            </form>
-            <table className='table-auto border-collapse font-mono my-4 border border-slate-400'>
-                <thead>
-                    <tr>
-                        <th className="px-2 border border-slate-400">Divisor</th>
-                        <th className="px-2 border border-slate-400">Accumulator</th>
-                        <th className="px-2 border border-slate-400">Quotient</th>
-                        <th className="px-2 border border-slate-400">Operation</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {result?.map((step: any, index: number) => (
-                        <tr key={index}>
-                            <td className="px-2 mx-2 border border-slate-400">{step.num2}</td>
-                            <td className="px-2 mx-2 border border-slate-400">{step.ac}</td>
-                            <td className="px-2 mx-2 border border-slate-400">{step.qr}</td>
-                            <td className="px-2 mx-2 border border-slate-400">{step.operation}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {opr && (
-                <>
-                    <p>The remainder is: {remainder} which is: {parseInt(remainder, 2).toString(10)}</p>
-                    <p>The quotient is: {quotient} which is: {parseInt(quotient, 2).toString(10)}</p>
-                </>
-            )}
-            <div className='flex gap-2'>
-                {result.length > 0 &&
-                    <>
-                        <button onClick={() => clearEverything()} className='bg-blue-500 text-white px-4 py-2 rounded-md'>Clear</button>
-                        <button onClick={() => showNext()} className='bg-green-500 text-white px-4 py-2 rounded-md'>Next</button>
-                        <button onClick={() => setResult(steps)} className='bg-red-500 text-white px-4 py-2 rounded-md'>Show All</button>
-                        <button onClick={() => autoShowNext()} className='bg-yellow-500 text-white px-4 py-2 rounded-md'>Animate</button>
-                    </>
+                // My fix:
+                // Calculate `subResult = addBinary(ac, negate(m))`.
+
+                const subResult = addBinary(ac, negate(m));
+                stepsLog.push({ divisor: m, ac: subResult, qr, operation: 'Subtract M', description: 'AC <- AC - M' });
+
+                if (subResult[0] === '1') {
+                    // Result is negative.
+                    // Set q0 = 0.
+                    qr = qr.substring(0, qr.length - 1) + '0';
+                    // Restore: AC = AC + M.
+                    // subResult + m
+                    ac = addBinary(subResult, m);
+                    stepsLog.push({ divisor: m, ac, qr, operation: 'Restore', description: 'AC < 0, so restore AC and set q0 = 0' });
+                } else {
+                    // Result is positive.
+                    // Set q0 = 1.
+                    // No restore needed. AC = subResult.
+                    ac = subResult;
+                    qr = qr.substring(0, qr.length - 1) + '1';
+                    stepsLog.push({ divisor: m, ac, qr, operation: 'Set q0 = 1', description: 'AC >= 0, so keep AC and set q0 = 1' });
                 }
+
+            } else {
+                // The logic in original file was a bit confused on variables.
+                // Let's implement correct Restoring Division logic as derived above.
+                // The loop continues.
+            }
+        }
+
+        setRemainder(ac);
+        setQuotient(qr);
+        setIsCalculated(true);
+        stepsLog.push({ divisor: m, ac, qr, operation: 'Result', description: `Quotient: ${qr}, Remainder: ${ac}` });
+
+        return stepsLog;
+    };
+
+    const numToBin = (numStr: string) => {
+        if (!numStr) return "";
+        const num = parseInt(numStr, 10);
+        if (isNaN(num)) return "";
+
+        // Handle negative input? Booth division typically unsigned or 2's comp?
+        // Restoring division is typically for unsigned integers.
+        // If inputs are signed, it's more complex.
+        // Let's assume Unsigned for simple restoring division or convert to absolute.
+        // The original logic `num.trim() === '-'` implies signed support attempt but looks messy.
+        // I will stick to 8-bit unsigned for simplicity and robustness.
+
+        let bin = Math.abs(num).toString(2);
+        bin = bin.padStart(8, '0');
+        return bin;
+    };
+
+    // Calculate whenever inputs change AND are valid
+    const handleCalculate = (e: FormEvent) => {
+        e.preventDefault();
+        setError("");
+
+        if (!dividendDec || !divisorDec) {
+            setError("Please enter both numbers");
+            return;
+        }
+
+        const bin1 = numToBin(dividendDec);
+        const bin2 = numToBin(divisorDec);
+
+        if (parseInt(divisorDec) === 0) {
+            setError("Division by zero");
+            return;
+        }
+
+        setNum1Bin(bin1);
+        setNum2Bin(bin2);
+
+        const resSteps = performDivision(bin1, bin2);
+        setSteps(resSteps);
+        setResult([resSteps[0]]);
+        setIsCalculated(true);
+    };
+
+    const showNext = () => {
+        if (result.length < steps.length) {
+            setResult(steps.slice(0, result.length + 1));
+        }
+    }
+
+    const showAll = () => {
+        setResult(steps);
+    }
+
+    const clearAll = () => {
+        setDividendDec("");
+        setDivisorDec("");
+        setNum1Bin("");
+        setNum2Bin("");
+        setSteps([]);
+        setResult([]);
+        setIsCalculated(false);
+    }
+
+    const codeSnippet = `function restoringDivision(Q, M) {
+    let A = 0;
+    let n = Q.length; // Number of bits
+    
+    for (let i = 0; i < n; i++) {
+        // Left Shift A, Q
+        A = (A << 1) | ((Q >> (n - 1)) & 1);
+        Q = Q << 1;
+        
+        // Subtract M
+        A = A - M;
+        
+        if (A < 0) {
+            // A < 0, Restore A
+            A = A + M;
+            // Q[0] = 0 (Already 0 from shift)
+        } else {
+            // A >= 0, Set Q[0] = 1
+            Q = Q | 1;
+        }
+    }
+    return { Quotient: Q, Remainder: A };
+}`;
+
+    return (
+        <AlgorithmPageLayout
+            title="Restoring Division Algorithm"
+            description="A division algorithm for binary result. It operates on unsigned integers."
+            resources={[
+                { label: "Division Algorithm", url: "https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division" }
+            ]}
+            codeSnippet={codeSnippet}
+            controls={
+                <form onSubmit={handleCalculate} className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none">Dividend (Decimal)</label>
+                        <Input
+                            type="number"
+                            min="0"
+                            placeholder="e.g. 10"
+                            value={dividendDec}
+                            onChange={(e) => setDividendDec(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">Binary: {numToBin(dividendDec)}</p>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none">Divisor (Decimal)</label>
+                        <Input
+                            type="number"
+                            min="1"
+                            placeholder="e.g. 3"
+                            value={divisorDec}
+                            onChange={(e) => setDivisorDec(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">Binary: {numToBin(divisorDec)}</p>
+                    </div>
+
+                    {error && <p className="text-sm text-destructive">{error}</p>}
+
+                    <div className="flex gap-2">
+                        <Button type="submit" className="flex-1">Calculate</Button>
+                        {isCalculated && <Button type="button" variant="outline" onClick={clearAll}>Clear</Button>}
+                    </div>
+                </form>
+            }
+        >
+            <div className="space-y-4">
+                {isCalculated && (
+                    <div className="flex gap-2 justify-center mb-4">
+                        <Button size="sm" onClick={showNext} disabled={result.length === steps.length}>Next Step</Button>
+                        <Button size="sm" variant="secondary" onClick={showAll} disabled={result.length === steps.length}>Show All</Button>
+                    </div>
+                )}
+
+                {result.length > 0 ? (
+                    <div className="space-y-4">
+                        {isCalculated && result.length === steps.length && (
+                            <div className="p-4 bg-green-50 border rounded-lg flex justify-around">
+                                <div>
+                                    <span className="font-bold text-green-900">Quotient (Q): </span>
+                                    <span className="font-mono">{parseInt(quotient, 2)} ({quotient})</span>
+                                </div>
+                                <div>
+                                    <span className="font-bold text-green-900">Remainder (A): </span>
+                                    <span className="font-mono">{parseInt(remainder, 2)} ({remainder})</span>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse text-sm text-center">
+                                <thead>
+                                    <tr className="bg-muted text-left">
+                                        <th className="p-3 font-medium border-b">Operation</th>
+                                        <th className="p-3 font-medium border-b">Accumulator (A)</th>
+                                        <th className="p-3 font-medium border-b">Quotient (Q)</th>
+                                        <th className="p-3 font-medium border-b">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {result.map((step, index) => (
+                                        <tr key={index} className="border-b transition-colors hover:bg-muted/50 font-mono">
+                                            <td className="p-2 border-r text-left whitespace-nowrap">{step.operation}</td>
+                                            <td className="p-2 border-r">{step.ac}</td>
+                                            <td className="p-2 border-r">{step.qr}</td>
+                                            <td className="p-2 text-left text-xs text-muted-foreground">{step.description}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                        <p>Enter numbers sets to divide.</p>
+                    </div>
+                )}
             </div>
-        </div>
-    </>
+        </AlgorithmPageLayout>
     );
 };
 
 export default BoothsDivisionAlgorithm;
-export { addBinary, negate };

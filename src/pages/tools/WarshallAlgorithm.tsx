@@ -1,111 +1,122 @@
-import { useState, useRef } from "react";
-import { ForceGraph2D } from "react-force-graph";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useRef, useEffect } from "react";
+import AlgorithmPageLayout from '@/components/AlgorithmPageLayout';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import ForceGraph2D from 'react-force-graph-2d';
 
+interface PathResult {
+    from: number;
+    to: number;
+    path: string;
+    distance: number;
+}
 
 const WarshallAlgorithm = () => {
+    const [vertices, setVertices] = useState<number>(4);
     const [graph, setGraph] = useState<(number | string)[][]>([]);
-    const [vertices, setVertices] = useState(0);
     const [errorMessage, setErrorMessage] = useState<string>("");
-    const [paths, setPaths] = useState<{ from: number; to: number; path: string; distance: number; }[]>([]);
+    const [paths, setPaths] = useState<PathResult[]>([]);
     const [showResults, setShowResults] = useState(false);
     const [iterations, setIterations] = useState<number[][][]>([]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 600, height: 500 });
 
+    useEffect(() => {
+        const updateDimensions = () => {
+            if (containerRef.current) {
+                setDimensions({
+                    width: containerRef.current.clientWidth,
+                    height: 500
+                });
+            }
+        };
+
+        updateDimensions(); // Set initial dimensions
+        window.addEventListener('resize', updateDimensions);
+
+        // Init default graph
+        initGraph(4);
+
+        return () => window.removeEventListener('resize', updateDimensions);
+    }, []);
+
+    const initGraph = (v: number) => {
+        // Create an empty graph with some defaults? Or just empty.
+        // Let's create empty except diagonal 0.
+        const newGraph = Array(v).fill(null).map(() => Array(v).fill(''));
+        for (let i = 0; i < v; i++) newGraph[i][i] = 0;
+        setGraph(newGraph);
+        setVertices(v);
+        setShowResults(false);
+    };
 
     const handleVerticesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const v = parseInt(e.target.value);
-        if (isNaN(v)) {
-            setVertices(0);
-            setErrorMessage("Please enter a valid number of vertices greater than 0.");
+        if (isNaN(v) || v < 1) return; // Don't update if invalid immediately or handle blur?
+        if (v > 10) {
+            // cap at 10 to prevent massive UI
             return;
         }
-        if (!isNaN(v) && v > 0) {
-            if (v > 10) {
-                setErrorMessage("Please enter a number of vertices less than or equal to 10.");
-                return;
-            }
-            setVertices(v);
-            setGraph(Array(v).fill(null).map(() => Array(v).fill('')));
-            setErrorMessage("")
-        }
+        initGraph(v);
     };
-
-
 
     const handleGraphChange = (row: number, col: number, value: string) => {
         const newGraph = [...graph];
-        const trimmedValue = value.trim().toLowerCase();
-        if (trimmedValue === '') {
-            newGraph[row][col] = ''; // Allow clearing of values
-        } else if (trimmedValue === 'inf') {
-            newGraph[row][col] = Infinity;
-        }
-        else {
-            //added
-            if ((/^\d$/.test(trimmedValue))) {
-                const numericValue = parseFloat(trimmedValue);
-                newGraph[row][col] = numericValue;
-            } else {
-                setErrorMessage("All cell must be filled with valid value,Only numeric values or 'inf' are allowed.");
-                return;
-            }
-
-
-        }
-
+        newGraph[row][col] = value;
         setGraph(newGraph);
         setErrorMessage("");
     };
 
-   
-    //dipslay error message for invalid value or empty cell
-    const validateGraphInput = () => {
-        for (let i = 0; i < graph.length; i++) {
-            for (let j = 0; j < graph[i].length; j++) {
-                const value = String(graph[i][j]).trim();
-                if (i !== j) {
-                    if (value === '') {
-                        setErrorMessage("All cell must be filled with valid value,Only numeric values or 'inf' are allowed.");
-
-                        return false;
+    const parseGraph = () => {
+        const parsedGraph: number[][] = [];
+        for (let i = 0; i < vertices; i++) {
+            const row: number[] = [];
+            // Safety check: ensure graph[i] exists
+            if (!graph[i]) {
+                return null;
+            }
+            for (let j = 0; j < vertices; j++) {
+                const val = graph[i][j];
+                if (i === j) {
+                    row.push(0);
+                    continue;
+                }
+                const sVal = String(val).trim().toLowerCase();
+                if (sVal === '' || sVal === 'inf' || sVal === 'infinity') {
+                    row.push(Infinity);
+                } else {
+                    const num = parseFloat(sVal);
+                    if (isNaN(num)) {
+                        setErrorMessage(`Invalid value at[${i + 1},${j + 1}]: ${val} `);
+                        return null;
                     }
-                    if (value !== 'inf' && isNaN(Number(value))) {
-                        setErrorMessage("All cell must be filled with valid value Only numeric values or 'inf' are allowed.");
-                        return false;
-                    }
+                    row.push(num);
                 }
             }
+            parsedGraph.push(row);
         }
-        
-        // Clear error message if all inputs are valid
-        setErrorMessage("");
-        return true;
+        return parsedGraph;
     };
-  
-    const floydWarshall = () => {
-        if (!validateGraphInput()) {
-            setPaths([]);
-            setIterations([]);
-            setShowResults(false);
-            return;
-        }
 
-        const dist = Array.from({ length: vertices }, () => Array(vertices).fill(Infinity));
+    const floydWarshall = () => {
+        const dist = parseGraph();
+        if (!dist) return;
+
         const next = Array.from({ length: vertices }, () => Array(vertices).fill(null));
 
+        // Initialize next
         for (let i = 0; i < vertices; i++) {
-            dist[i][i] = 0;
-        }
-
-        for (let u = 0; u < vertices; u++) {
-            for (let v = 0; v < vertices; v++) {
-                if (graph[u][v] !== Infinity) {
-                    dist[u][v] = graph[u][v];
-                    next[u][v] = v;
+            for (let j = 0; j < vertices; j++) {
+                if (dist[i][j] !== Infinity) {
+                    next[i][j] = j;
                 }
             }
         }
 
         const iterationSnapshots = [];
+        // Initial state
+        iterationSnapshots.push(dist.map(row => row.slice()));
 
         for (let k = 0; k < vertices; k++) {
             for (let i = 0; i < vertices; i++) {
@@ -116,142 +127,99 @@ const WarshallAlgorithm = () => {
                     }
                 }
             }
-
-            // Save the state of the distance matrix after each iteration
             iterationSnapshots.push(dist.map(row => row.slice()));
         }
 
-        if (next !== null) {
-            calculatePaths(next, dist);
-        }
         setIterations(iterationSnapshots as number[][][]);
+        calculatePaths(next, dist);
         setShowResults(true);
-
     };
 
-    const calculatePaths = (next: number[][], dist: number[][]) => {
-        const allPaths = [];
-
-        for (let i = 0; i < vertices; i++) {
-            for (let j = 0; j < vertices; j++) {
-                if (i !== j) {
-                    const path = constructPath(next, i, j);
-                    if (path.length > 0) {
-                        allPaths.push({
-                            from: i + 1,  // Convert to 1-based indexing
-                            to: j + 1,    // Convert to 1-based indexing
-                            path: path.map(p => p === null ? '' : p + 1).join(' -> '),  // Convert to 1-based indexing
-                            distance: dist[i][j]
-                        });
-                    }
-                }
-            }
-        }
-
-        setPaths(allPaths);
-    };
-
-    const constructPath = (next: number[][], start: number | null, end: number) => {
-        if (start !== null) {
-            if (next[start][end] === null) {
-                return [];
-            }
-        }
-        const path = [start];
-        while (start !== end) {
-            if (start !== null)
-                start = next[start][end];
-            if (start === null) {
-                return [];
-            }
-            path.push(start);
+    const constructPath = (next: any[][], u: number, v: number) => {
+        if (next[u][v] === null) return [];
+        const path = [u];
+        while (u !== v) {
+            u = next[u][v];
+            path.push(u);
         }
         return path;
     };
-    const outputRef = useRef<HTMLDivElement>(null);
+
+    const calculatePaths = (next: any[][], dist: number[][]) => {
+        const allPaths: PathResult[] = [];
+        for (let i = 0; i < vertices; i++) {
+            for (let j = 0; j < vertices; j++) {
+                if (i !== j && dist[i][j] !== Infinity) {
+                    const p = constructPath(next, i, j);
+                    allPaths.push({
+                        from: i + 1,
+                        to: j + 1,
+                        path: p.map(x => x + 1).join(' -> '),
+                        distance: dist[i][j]
+                    });
+                }
+            }
+        }
+        setPaths(allPaths);
+    };
+
+    // Links for visualization
+    const getLinks = () => {
+        // Based on INPUT graph, not Result graph? Usually visualizations show input topology.
+        // Or result? Input is better for understanding "Shortest Path ON this graph".
+        // The Floyd Warshall result adds "shortcut" edges conceptually.
+        // Let's visualize the INPUT graph.
+        const links: any[] = [];
+        const parsed = parseGraph();
+        if (!parsed) return [];
+
+        for (let i = 0; i < vertices; i++) {
+            for (let j = 0; j < vertices; j++) {
+                if (i !== j && parsed[i][j] !== Infinity) {
+                    links.push({ source: i, target: j, label: String(parsed[i][j]) }); // nodes 0-indexed for simplicity in data
+                }
+            }
+        }
+        return links;
+    };
+
     return (
-        <div className="m-4 flex flex-col md:flex-row gap-4">
-            <div ref={outputRef}>
-                <p className="font-bold text-2xl">Floyd-Warshall Algorithm</p>
-                <p className="prose"><a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm#Algorithm">:Definition</a></p>
-                <p className="prose"><a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm#Example">:Example</a></p>
-                <p className="prose"><a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm#Applications_and_generalizations">:Applications</a></p>
-                <div>
-                    <label>Number of vertices: </label>
-                    <input
-                        type="number"
-                        value={vertices}
-                        onChange={handleVerticesChange}
-                        min={1}
-                        max={10}
-                    />
-
-                    {errorMessage && (
-                        <p className="text-red-500 mt-2">{errorMessage}</p>
-                    )}
-                </div>
-
-                {vertices > 0 && (
-                    <div>
-                        <p>Enter Adjacency Matrix (use 'inf' for infinity):</p>
-                        {graph.map((row, i) => (
-                            <div key={i}>
-                                {row.map((_, j) => (
-                                    i === j ? (
-                                        <input
-                                            className="border rounded-md p-1"
-                                            key={j}
-                                            type="text"
-                                            value={0}
-                                            readOnly={true}
-                                            style={{ width: '50px', margin: '2px', border: '2px solid #aaa' }}
-                                        />
-                                    ) : (
-                                        <input
-                                            className="border rounded-md p-1"
-                                            key={j}
-                                            type="text"
-                                            onChange={(e) => handleGraphChange(i, j, e.target.value)}
-                                            style={{ width: '50px', margin: '2px', border: '2px solid black' }}
-                                        />
-                                    )
-                                ))}
-
-
-                            </div>
-
-                        ))}
-
-
-                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2" onClick={floydWarshall} >
-                            Run Floyd-Warshall Algorithm
-                        </button>
+        <AlgorithmPageLayout
+            title="Floyd-Warshall Algorithm"
+            description="Find shortest paths in a directed weighted graph with positive or negative edge weights (but with no negative cycles)."
+            resources={[
+                { label: "Wikipedia", url: "https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm" }
+            ]}
+            controls={
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium leading-none">Number of Vertices (1-10)</label>
+                        <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={vertices}
+                            onChange={handleVerticesChange}
+                        />
                     </div>
-                )}
 
-                {showResults && (
-                    <div className="my-4">
-                        <p className="my-1 font-bold">Distance Matrix Iterations:</p>
-
-                        {iterations.map((iteration, index) => (
-                            <div key={index}>
-                                <i>{index === iterations.length - 1 ? `Iteration ${index + 1} - Final Shortest Path Matrix` : `Iteration - ${index + 1}`}</i>
-                                <table className="border border-collapse my-2">
+                    {vertices > 0 && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium leading-none">Adjacency Matrix (Weights)</label>
+                            <div className="overflow-x-auto p-2 border rounded-md max-w-full">
+                                <table className="border-collapse w-full">
                                     <tbody>
-                                        <tr className="border">
-                                            <th className="p-2 border">&nbsp;</th> {/* Empty cell */}
-                                            {iteration[0].map((_, j) => (
-                                                <th key={`header-${j}`} className="border p-2">{j + 1}</th>
-                                            ))}
-                                        </tr>
-                                        {iteration.map((row, i) => (
-                                            <tr className="border" key={`row-${i}`}>
-                                                <th className="border p-2">{i + 1}</th>
-                                                {row.map((value, j) => (
-                                                    <td
-                                                        className="border p-2 text-center"
-                                                        key={`cell-${i}-${j}`}>
-                                                        {i === j ? '0' : value === Infinity ? 'inf' : value}
+                                        {graph.map((row, i) => (
+                                            <tr key={i}>
+                                                {row.map((val, j) => (
+                                                    <td key={j} className="p-1 min-w-[50px]">
+                                                        <input
+                                                            className={`w-full h-8 text-center border rounded text-sm ${i === j ? "bg-gray-100 text-gray-400" : ""} `}
+                                                            value={i === j ? 0 : val}
+                                                            onChange={(e) => handleGraphChange(i, j, e.target.value)}
+                                                            disabled={i === j}
+                                                            placeholder="inf"
+                                                        />
                                                     </td>
                                                 ))}
                                             </tr>
@@ -259,69 +227,102 @@ const WarshallAlgorithm = () => {
                                     </tbody>
                                 </table>
                             </div>
-                        ))}
+                            <p className="text-xs text-muted-foreground">Use 'inf' or leave empty for no edge.</p>
+                        </div>
+                    )}
 
-                        <p className="font-bold text-xl my-4">Paths:</p>
-                        {paths.map((path, index) => (
-                            <div key={index}>
-                                <p>
-                                    Shortest path from <span className="text-red-800 font-bold">{path.from}</span> to
-                                    <span className="text-blue-800 font-bold"> {path.to}</span>: {path.path}, Distance: {path.distance}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-            <div>
+                    {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+
+                    <Button onClick={floydWarshall} className="w-full">
+                        Run Algorithm
+                    </Button>
+                </div>
+            }
+        >
+            <div className="space-y-6" style={{overflowX: 'scroll'}}>
                 {showResults && (
+                    <>
+                        <div className="p-4 border rounded-lg bg-slate-50">
+                            <h3 className="font-bold text-lg mb-2">Shortest Paths</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
+                                {paths.map((p, idx) => (
+                                    <div key={idx} className="bg-white p-2 text-xs border rounded shadow-sm">
+                                        <span className="font-bold">{p.from} → {p.to}</span>: {p.distance}
+                                        <br />
+                                        <span className="text-muted-foreground">{p.path}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 overflow-x-auto">
+                            <h3 className="font-bold text-lg">Process Iterations</h3>
+                            {/* <div className="flex md:flex-col md:w-[200px] gap-4 overflow-x-auto pb-4"> */}
+                            <div className="flex  md:flex-col gap-4 overflow-x-auto pb-4 max-w-full">    
+                                {iterations.map((iter, k) => (
+                                    <div key={k} className="min-w-[200px] border p-2 rounded bg-white">
+                                        <p className="text-center text-xs font-bold mb-1">
+                                            {k === 0 ? "Initial" : `Step k = ${k} `}
+                                        </p>
+                                        {/* <table className="w-full text-center text-xs border-collapse"> */}
+                                        <table className="w-full text-center text-xs border-collapse">
+                                            <tbody>
+                                                {iter.map((row, r) => (
+                                                    <tr key={r}>
+                                                        {row.map((val, c) => (
+                                                            <td key={c} className={`border p - 1 ${val === Infinity ? "text-gray-400" : ""} `}>
+                                                                {val === Infinity ? "∞" : val}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <div ref={containerRef} className="border rounded-lg overflow-hidden bg-white relative h-[500px]">
+                    {/* Graph Visualization of INPUT */}
                     <ForceGraph2D
+                        width={dimensions.width}
+                        height={dimensions.height}
                         graphData={{
-                            nodes: Array.from({ length: vertices }).map((_, i) => ({ id: i + 1 })), // Create nodes: 0, 1, 2, ..., n-1
-                            links: graph
-                                .map((row, i) => row.map((value, j) => ({ source: i + 1, target: j + 1, value })))
-                                .flat()
-                                .filter(link => link.value !== Infinity)
-
+                            nodes: Array.from({ length: vertices }).map((_, i) => ({ id: i, label: String(i + 1) })),
+                            links: getLinks() // dynamic func call or state? Func call on render is fine if fast.
                         }}
-                        linkWidth={2}
-                        linkDirectionalArrowLength={4.5}
+                        nodeLabel="label"
+                        linkLabel="label"
+                        linkDirectionalArrowLength={5}
                         linkDirectionalArrowRelPos={1}
-                        enableNodeDrag={true}
-                        enablePanInteraction={true}
-                        enableZoomInteraction={false}
-
-                        width={document.documentElement.clientWidth < 768 ? document.documentElement.clientWidth * 0.9 : document.documentElement.clientWidth - (outputRef.current?.clientWidth ?? 0) - 100}
-                        nodeCanvasObject={(node, ctx, globalScale) => {
-                            const label = node.id;
-                            const fontSize = 12 / globalScale;
+                        linkCurvature={0.2}
+                        nodeCanvasObject={(node: any, ctx: any, globalScale: any) => {
+                            const label = node.label || String(node.id);
+                            const fontSize = 14 / globalScale;
                             ctx.font = `${fontSize}px Sans-Serif`;
-                            const textWidth = ctx.measureText(String(label ?? '')).width;
-                            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
+                            const textWidth = ctx.measureText(label).width;
+                            const bckgDimensions = [textWidth, fontSize].map((n: number) => n + fontSize * 0.2);
 
                             ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-                            ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
+                            ctx.beginPath();
+                            ctx.arc(node.x, node.y, 8, 0, 2 * Math.PI, false);
+                            ctx.fill();
+                            ctx.strokeStyle = '#000';
+                            ctx.stroke();
 
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
                             ctx.fillStyle = '#000';
-                            ctx.fillText(String(label), node.x ?? 0, (node.y ?? 0));
-
-                            node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
+                            ctx.fillText(label, node.x, node.y);
                         }}
-                        nodePointerAreaPaint={(node, color, ctx) => {
-                            ctx.fillStyle = color;
-                            const bckgDimensions = node.__bckgDimensions;
-                            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                            bckgDimensions && ctx.fillRect((node.x ?? 0) - bckgDimensions[0] / 2, node.y ? node.y - bckgDimensions[1] / 2 : 0, bckgDimensions[0], bckgDimensions[1]);
-                        }}
-                        linkColor={() => 'rgba(0, 0, 0, 1)'}
                     />
-                )}
+                </div>
             </div>
-        </div>
+        </AlgorithmPageLayout>
     );
-}
+};
 
 export default WarshallAlgorithm;
-

@@ -1,203 +1,107 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { cleanArticleContent, decodeArticleTitle } from '@/lib/articleUtils';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const Article = (props) => {
-    const { title } = useParams();
-    const [article, setArticle] = useState(null);
-    const [recommendations, setRecommendations] = useState(null);
-    const [feedUrl, setFeedUrl] = useState(null);
+interface ArticleData {
+    title: string;
+    content: string;
+}
 
-    const fetchRecommendations = async () => {
-        const res = await fetch(`https://academix-backend-nlqg.onrender.com/api/get-recommendation/${title}`);
-        const data = await res.json();
-        setRecommendations(data['recommendations'].slice(0, 5));
-    }
+interface Recommendation {
+    title: string;
+}
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const res = await fetch('https://academix-backend-nlqg.onrender.com/api/add-article', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                feedUrl: feedUrl,
-            }),
-        });
-        const data = await res.json();
-        console.log(data);
+const Article = () => {
+    const { title } = useParams<{ title: string }>();
+    const [article, setArticle] = useState<ArticleData | null>(null);
+    const [recommendations, setRecommendations] = useState<Recommendation[] | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    }
+    useEffect(() => {
+        const loadData = async () => {
+            if (!title) return;
+            setLoading(true);
+            try {
+                // Fetch Article
+                const articleRes = await fetch(`${import.meta.env.VITE_API_URL}/get-article/${title}`);
+                const articleData = await articleRes.json();
 
-    const fetchArticle = async () => {
-        const res = await fetch(`https://academix-backend-nlqg.onrender.com/api/get-article/${title}`);
-        const data = await res.json();
-        // find all wikipedia links and add : in front of their innerHTML
-        data.content = data.content.replace(/<a.*?href="https:\/\/.*?\.wikipedia\.org\/wiki\/(.*?)".*?>(.*?)<\/a>/g, (match, p1, p2) => {
-            // if it's an image, don't touch it
-            if(p1.includes("File:")){
-                return match;
+                // Fetch Recommendations
+                const recRes = await fetch(`${import.meta.env.VITE_API_URL}/get-recommendation/${title}`);
+                const recData = await recRes.json();
+
+                // Process Content
+                const cleanedContent = cleanArticleContent(articleData.content);
+
+                setArticle({ ...articleData, content: cleanedContent });
+                setRecommendations(recData.recommendations?.slice(0, 5) || []);
+
+            } catch (error) {
+                console.error("Failed to load article", error);
+            } finally {
+                setLoading(false);
             }
-            return `<a href="https://en.wikipedia.org/wiki/${p1}">:${p2}</a>`;
-        });
-        // Remove all elements that contains class metadata in their class attribute with all their innerHTML
-        // const pattern = /<.*?class=".*?metadata.*?".*?>.*?<\/.*?>/g;
-        // data.content = data.content.replace(pattern, '');
-        /** data.content = data.content.replace(/<.*?class=".*?metadata.*?".*?>.*?<\/.*?>/g, (match) => {
-            console.log(match);
-            return '';
-        }); */
-        // Remove all table elements that contains class metadata in their class attribute with all their innerHTML
-        const dataCopy = data;
-        dataCopy.content = dataCopy.content.replace(/<table.*?class=".*?metadata.*?".*?>.*?<\/table>/g, '');
-        // Remove all elements that contain role="note" in their attribute with all their innerHTML
-        dataCopy.content = dataCopy.content.replace(/<.*?role="note".*?>.*?<\/.*?>/g, '');
-        // Remove all elements that contain class side-box in their class attribute with all their innerHTML
-        dataCopy.content = dataCopy.content.replace(/<.*?class=".*?side-box.*?".*?>.*?<\/.*?>/g, '');
-        // Also remove side-box-flex elements
-        dataCopy.content = dataCopy.content.replace(/<.*?class=".*?side-box-.*?">.*?<\/.*?>/g, '');
-        // remove table.sidebar
-        dataCopy.content = dataCopy.content.replace(/<table class=".*?sidebar.*?">.*?<\/table>/g, '');
-        // for some reason any of the above methods didn't work
-        const doc = new DOMParser().parseFromString(dataCopy.content, 'text/html');
-        const tables = doc.querySelectorAll('table.sidebar');
-        tables.forEach((table) => {
-            table.remove();
-        });
-        const metadata = doc.querySelectorAll('.metadata');
-        metadata.forEach((meta) => {
-            meta.remove();
-        });
-        const sideBox = doc.querySelectorAll('.side-box');
-        sideBox.forEach((box) => {
-            box.remove();
-        });
-        const sideBoxFlex = doc.querySelectorAll('.side-box-flex');
-        sideBoxFlex.forEach((box) => {
-            box.remove();
-        });
-        const divRoleNav = doc.querySelectorAll('[role="navigation"]');
-        divRoleNav.forEach((div) => {
-            div.remove();
-        });
-        // find heading named External Links and remove it and all the elements after it
-        const headings = doc.querySelectorAll('#External_links');
+        };
 
-        headings.forEach((heading) => {
-           heading.remove();
-        });
-        dataCopy.content = doc.body.innerHTML;
-        setArticle(dataCopy);
-        (window as any).Nutshell.start();
-        (window as any).Nutshell.setOptions({
-            dontEmbedHeadings: true,
-        });
-    
-    }
-    useEffect(() => {
-        fetchArticle();
-        fetchRecommendations();
-    }, []);
-    useEffect(() => {
-        (window as any).Nutshell.start();
-        (window as any).Nutshell.setOptions({
-            dontEmbedHeadings: true,
-        });
-    }, [article]);
-    if (article === null) {
-        return (
-            <div className="m-4 flex justify-center items-center flex-col gap-4">
-                <div className="m-4 animate-pulse rounded-md bg-muted w-[250px] h-24"></div>
-                <div className="m-4 animate-pulse rounded-md bg-muted w-[250px] h-24"></div>
-                <div className="m-4 animate-pulse rounded-md bg-muted w-[250px] h-24"></div>
-                <div className="m-4 animate-pulse rounded-md bg-muted w-[250px] h-24"></div>
-            </div>
-        )
-    }
-    return (
-        <>
-        <div className="m-4 flex justify-center items-center flex-col">
-            <p className="text-3xl md:text-4xl font-extrabold my-4">{decodeURI(article.title).replace(/_/g, ' ')}</p>
-            <div className="recommendations">
-            <p className="text-lg ml-16 font-bold text-2xl">Recommended Articles</p>
-            <div className="flex flex-row justify-center items-center flex-wrap md:gap-4">
-            {recommendations === null ? 
-                <div className="m-4 animate-pulse rounded-md bg-muted w-[250px] h-24"></div> :
-                recommendations.map((rec: any) => {
-                return (
-                    <div key={rec.title} className="m-1 p-1 md:m-2 md:p-2 w-full md:w-[300px] h-8 md:h-16 bg-gray-100 rounded-md justify-center items-center flex flex-row"> 
-                    <a href={`/article/${rec.title}`} className="underline">{decodeURI(rec.title).replace(/_/g, ' ')}</a>
-                    </div>
-                )
-            })}
-            </div>
-            </div>
-            <div className="prose w-full" dangerouslySetInnerHTML={{__html: article.content}}></div>
-            </div>
-        </>
-    )
-}
+        loadData();
+    }, [title]);
 
-const ArticleList = () => {
-    const [articles, setArticles] = useState([]);
-    const fetchArticles = async () => {
-        const res = await fetch('https://academix-backend-nlqg.onrender.com/api/get-all-articles');
-        const data = await res.json();
-        setArticles(data);
-    }
-    const [articleUrl, setArticleUrl] = useState('');
     useEffect(() => {
-        fetchArticles();
-    }, []);
-    const handleAddArticle = async (e: any) => {
-        e.preventDefault();
-        await fetch('https://academix-backend-nlqg.onrender.com/api/add-article/?url=' + articleUrl)
-            .then((res) => res.json())
-            .then((data) => {
-                if(data.error === undefined){
-                    alert(data.message);
-                }else{
-                    alert(data.error);
-                }
+        if (!loading && article && (window as any).Nutshell) {
+            (window as any).Nutshell.start();
+            (window as any).Nutshell.setOptions({
+                dontEmbedHeadings: true,
             });
-
-        const data = await res.json();
-        if(data.message === 'Article already exists') {
-            alert('Article already exists');
         }
-        if(data.message === 'Article added successfully') {
-            alert('Article added successfully');
-        }
-        setArticleUrl('');
+    }, [loading, article]);
 
-    }
-    return (
-        <div className="m-4 gap-4">
-            <p className="md:text-4xl font-extrabold my-4">All Articles</p>
-            <form onSubmit={handleAddArticle} className="flex flex-col gap-4">
-                <label htmlFor="articleUrl">Add an article</label>
-                <input 
-                className="p-2 border border-gray-300 rounded-md"
-                placeholder="Enter the URL of the article"
-                type="text" id="articleUrl" value={articleUrl} onChange={(e) => setArticleUrl(e.target.value)} />
-                <button 
-                className="p-2 bg-blue-500 text-white rounded-md"
-                type="submit">Add Article</button>
-                
-            </form>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {articles.map((article: any) => {
-                    return (
-                        <div key={article.title} className="bg-gray-100 p-4">
-                            <a href={`/article/${article.title}`} className="underline text-xl">{decodeURI(article.title).replace(/_/g, ' ')}</a>
-                            <p>{article.description}</p>
-                        </div>
-                    )
-                })}
+
+    if (loading || !article) {
+        return (
+            <div className="container max-w-4xl py-8 space-y-4">
+                <Skeleton className="h-12 w-3/4" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-2/3" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full" />)}
+                </div>
             </div>
+        );
+    }
+
+    return (
+        <div className="container max-w-4xl py-8 animate-in fade-in duration-500">
+            <h1 className="text-3xl md:text-5xl font-extrabold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
+                {decodeArticleTitle(article.title)}
+            </h1>
+
+            {recommendations && recommendations.length > 0 && (
+                <div className="mb-8 p-6 bg-muted/30 rounded-lg border">
+                    <h2 className="text-xl font-bold mb-4">Recommended Articles</h2>
+                    <div className="flex flex-wrap gap-2">
+                        {recommendations.map((rec) => (
+                            <Button key={rec.title} variant="secondary" size="sm" asChild>
+                                <Link to={`/article/${rec.title}`}>
+                                    {decodeArticleTitle(rec.title)}
+                                </Link>
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div
+                className="prose prose-lg dark:prose-invert max-w-none 
+                    prose-headings:font-bold prose-headings:tracking-tight
+                    prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                    prose-img:rounded-lg prose-img:shadow-md"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+            />
         </div>
-    )
-}
+    );
+};
 
 export default Article;
-export { ArticleList };
