@@ -206,8 +206,8 @@ function naiveSearch(text, pattern) {
             title="String Matching"
             description="Finds all occurrences of a pattern string in a text string."
             resources={[
-                { label: "Wikipedia: String Searching", url: "https://en.wikipedia.org/wiki/String-searching_algorithm" },
-                { label: "Rabin-Karp Algorithm", url: "https://en.wikipedia.org/wiki/Rabin%E2%80%93Karp_algorithm" }
+                { label: "What is String Searching", url: "https://en.wikipedia.org/wiki/String-searching_algorithm" },
+                { label: "What is Rabin-Karp Algorithm", url: "https://en.wikipedia.org/wiki/Rabin%E2%80%93Karp_algorithm" }
             ]}
             codeSnippet={codeSnippet}
             controls={

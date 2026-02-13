@@ -142,8 +142,8 @@ function FractionalKnapsack() {
             title="Fractional Knapsack Problem"
             description="A greedy algorithm that fills the knapsack with items to maximize profit. Items can be broken into smaller pieces."
             resources={[
-                { label: "Wikipedia: Continuous Knapsack", url: "https://en.wikipedia.org/wiki/Continuous_knapsack_problem" },
-                { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/fractional-knapsack-problem/" }
+                { label: "What is Fractional Knapsack", url: "https://en.wikipedia.org/wiki/Continuous_knapsack_problem" },
+                // { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/fractional-knapsack-problem/" }
             ]}
             codeSnippet={codeSnippet}
             controls={

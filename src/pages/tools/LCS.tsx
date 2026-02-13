@@ -92,8 +92,8 @@ function LCS() {
       title="Longest Common Subsequence"
       description="Finds the longest subsequence present in both of the given strings. The subsequence is a sequence that appears in the same relative order, but not necessarily contiguous."
       resources={[
-        { label: "Wikipedia: LCS", url: "https://en.wikipedia.org/wiki/Longest_common_subsequence_problem" },
-        { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/longest-common-subsequence-dp-4/" }
+        { label: "What is LCS", url: "https://en.wikipedia.org/wiki/Longest_common_subsequence" },
+        // { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/longest-common-subsequence-dp-4/" }
       ]}
       codeSnippet={codeSnippet}
       controls={
@@ -143,26 +143,26 @@ function LCS() {
               <table className="border-collapse text-sm text-center">
                 <thead>
                   <tr>
-                    <th className="p-2 border bg-muted"></th>
-                    <th className="p-2 border bg-muted"></th>
+                    <th className="p-2 border border-gray-800 bg-gray-400"></th>
+                    <th className="p-2 border border-gray-800 bg-gray-400"></th>
                     {Array.from(text2).map((char, index) => (
-                      <th key={index} className="p-2 border font-mono bg-muted">{char}</th>
+                      <th key={index} className="p-2 border border-gray-400 font-mono bg-muted">{char}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {dpTable.map((row, i) => (
                     <tr key={i}>
-                      <td className="p-2 border font-mono bg-muted font-bold">
+                      <td className="p-2 border border-gray-400 font-mono bg-muted font-bold">
                         {i === 0 ? "" : text1[i - 1]}
                       </td>
                       {row.map((cell, j) => {
                         const isPath = path.has(`${i},${j}`);
                         return (
-                          <td key={j} className={`p-2 border min-w-[3rem] h-12 relative ${isPath ? "bg-yellow-100 font-bold" : ""}`}>
-                            {cell.direction === 'diag' && <span className="absolute top-1 left-1 text-[0.6rem] text-muted-foreground">↖</span>}
-                            {cell.direction === 'up' && <span className="absolute top-1 left-1 text-[0.6rem] text-muted-foreground">↑</span>}
-                            {cell.direction === 'left' && <span className="absolute top-1 left-1 text-[0.6rem] text-muted-foreground">←</span>}
+                          <td key={j} className={`p-2 border border-gray-400 border-black min-w-[3rem] h-12 relative ${isPath ? "bg-green-200 font-bold" : ""}`}>
+                            {cell.direction === 'diag' && <span className="absolute top-1 left-1 text-[0.6rem] text-muted-foreground">↖️</span>}
+                            {cell.direction === 'up' && <span className="absolute top-1 left-1 text-[0.6rem] text-muted-foreground">⬆️</span>}
+                            {cell.direction === 'left' && <span className="absolute top-1 left-1 text-[0.6rem] text-muted-foreground">⬅️</span>}
                             {cell.val}
                           </td>
                         );

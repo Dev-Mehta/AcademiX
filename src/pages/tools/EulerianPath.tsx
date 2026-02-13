@@ -231,8 +231,7 @@ const EulerianPath = () => {
             title="Eulerian Path & Circuit"
             description="An Eulerian path is a trail in a finite graph that visits every edge exactly once. An Eulerian circuit is an Eulerian path which starts and ends on the same vertex."
             resources={[
-                { label: "Wikipedia: Eulerian Path", url: "https://en.wikipedia.org/wiki/Eulerian_path" },
-                { label: "Hierholzer's Algorithm", url: "https://en.wikipedia.org/wiki/Eulerian_path#Hierholzer's_algorithm" }
+                { label: "Eulerian Path", url: "https://en.wikipedia.org/wiki/Eulerian_path" },
             ]}
             controls={
                 <div className="space-y-4">
@@ -293,6 +292,24 @@ const EulerianPath = () => {
                             linkDirectionalArrowLength={4}
                             linkDirectionalArrowRelPos={1}
                             linkCurvature={0.25}
+                            nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+                                const label = String(node.id)
+                                const fontSize = 12 / globalScale
+
+                                ctx.font = `${fontSize}px Sans-Serif`
+                                ctx.textAlign = "center"
+                                ctx.textBaseline = "middle"
+
+                                // draw node circle
+                                ctx.beginPath()
+                                ctx.arc(node.x, node.y, 6, 0, 2 * Math.PI)
+                                ctx.fillStyle = node.color || "#999"
+                                ctx.fill()
+
+                                // draw label
+                                ctx.fillStyle = "#000"
+                                ctx.fillText(label, node.x, node.y)
+                            }}
                         />
                     ) : (
                         <div className="flex items-center justify-center h-full text-muted-foreground">

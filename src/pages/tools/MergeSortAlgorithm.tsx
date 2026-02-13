@@ -150,8 +150,8 @@ function MergeSortAlgorithm() {
             title="Merge Sort"
             description="Divide and Conquer algorithm. It divides the input array into two halves, calls itself for the two halves, and then merges the two sorted halves."
             resources={[
-                { label: "Wikipedia: Merge Sort", url: "https://en.wikipedia.org/wiki/Merge_sort" },
-                { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+                { label: "What is Merge Sort", url: "https://en.wikipedia.org/wiki/Merge_sort" },
+                
             ]}
             codeSnippet={codeSnippet}
             controls={

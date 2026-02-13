@@ -203,7 +203,12 @@ const BoothsAlgorithm = () => {
             title="Booth's Algorithm"
             description="Multiplication algorithm for signed binary numbers in two's complement notation."
             resources={[
-                { label: "Wikipedia: Booth's Algorithm", url: "https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm" }
+                { 
+                    label: "What is Booth's Algorithm", url: "https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm#The_algorithm"
+                 },
+                 { 
+                    label: "How it works", url: "https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm#How_it_works"
+                 },
             ]}
             controls={
                 <form onSubmit={handleSubmit} className="space-y-4">

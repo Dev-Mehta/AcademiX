@@ -79,8 +79,8 @@ const POSET = () => {
             title="POSET (Partially Ordered Set)"
             description="Visualize the divisibility lattice (Hasse Diagram) for a given number. A POSET consists of a set together with a binary relation that represents ordering."
             resources={[
-                { label: "Wikipedia: POSET", url: "https://en.wikipedia.org/wiki/Partially_ordered_set" },
-                { label: "Hasse Diagrams", url: "https://en.wikipedia.org/wiki/Hasse_diagram" }
+                { label: "POSET", url: "https://en.wikipedia.org/wiki/Partially_ordered_set" },
+                { label: "Hasse Diagrams", url: "https://en.wikipedia.org/wiki/Hasse_diagram#Diagram_design" }
             ]}
             controls={
                 <div className="space-y-4">

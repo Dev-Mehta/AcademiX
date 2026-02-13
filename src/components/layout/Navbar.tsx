@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, BookOpen, GraduationCap, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "../ThemeToggle";
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,7 @@ const Navbar = () => {
         { title: "Home", path: "/", icon: <GraduationCap className="w-5 h-5 mr-1" /> },
         { title: "Tools", path: "/tools", icon: <Calculator className="w-5 h-5 mr-1" /> },
         { title: "Articles", path: "/articles", icon: <BookOpen className="w-5 h-5 mr-1" /> },
+        
     ];
 
     const handleToggle = () => setIsOpen(!isOpen);
@@ -48,6 +50,7 @@ const Navbar = () => {
                                     {link.title}
                                 </Link>
                             ))}
+                            <ThemeToggle />
                         </div>
                     </div>
 

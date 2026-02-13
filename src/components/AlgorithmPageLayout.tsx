@@ -3,7 +3,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CopyBlock, dracula } from 'react-code-blocks';
 import { cn } from "@/lib/utils";
-
+import { useEffect } from 'react';
 interface AlgorithmPageLayoutProps {
     title: string;
     description?: string;
@@ -23,6 +23,12 @@ const AlgorithmPageLayout = ({
     children,
     className
 }: AlgorithmPageLayoutProps) => {
+    useEffect(() => {
+            // Initialize Nutshell if available
+            if ((window as any).Nutshell) {
+                (window as any).Nutshell.start();
+            }
+        }, []);
     return (
         <div className={cn("container max-w-5xl py-8 space-y-8 animate-in fade-in duration-500", className)}>
             <div className="space-y-4 text-center">
@@ -35,7 +41,7 @@ const AlgorithmPageLayout = ({
                     </p>
                 )}
                 {resources && resources.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-4 text-sm font-medium">
+                    <div className="flex flex-wrap justify-center gap-4 text-left text-sm">
                         {resources.map((resource, idx) => (
                             <a
                                 key={idx}
@@ -44,7 +50,7 @@ const AlgorithmPageLayout = ({
                                 rel="noopener noreferrer"
                                 className="text-primary hover:underline underline-offset-4 transition-colors"
                             >
-                                {resource.label}
+                                :{resource.label}
                             </a>
                         ))}
                     </div>

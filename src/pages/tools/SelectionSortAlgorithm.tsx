@@ -104,8 +104,8 @@ function SelectionSortAlgorithm() {
             title="Selection Sort"
             description="Sorts an array by repeatedly finding the minimum element from the unsorted part and putting it at the beginning."
             resources={[
-                { label: "Wikipedia: Selection Sort", url: "https://en.wikipedia.org/wiki/Selection_sort" },
-                { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+                { label: "Selection Sort", url: "https://en.wikipedia.org/wiki/Selection_sort" },
+                // { label: "Visualization", url: "https://visualgo.net/en/sorting" }
             ]}
             codeSnippet={codeSnippet}
             controls={
@@ -145,7 +145,7 @@ function SelectionSortAlgorithm() {
                                     <tr key={index} className="border-b hover:bg-muted/50 transition-colors">
                                         <td className="p-3 font-mono">{isFinal ? "Complete" : step.i}</td>
                                         <td className="p-3 font-mono">{isFinal ? "-" : step.min_val}</td>
-                                        <td className="p-3">
+                                        {/* <td className="p-3">
                                             <div className="flex gap-1">
                                                 {step.arr.map((val, idx) => {
                                                     let className = "bg-secondary text-secondary-foreground";
@@ -168,7 +168,53 @@ function SelectionSortAlgorithm() {
                                                     );
                                                 })}
                                             </div>
-                                        </td>
+                                        </td> */}
+                                        <td className="p-3 space-y-2">
+                                        {/* Before Swap */}
+                                        <div className="flex gap-1 items-center">
+                                            <span className="text-xs text-muted-foreground w-20">Before</span>
+                                            {step.beforeSwap.map((val, idx) => {
+                                                let className = "bg-secondary text-secondary-foreground";
+
+                                                if (idx === step.min_idx) {
+                                                    className = "bg-red-200 text-red-900 font-bold"; // Min found
+                                                } else if (idx === step.i) {
+                                                    className = "bg-yellow-200 text-yellow-900 border border-yellow-500"; // Current i
+                                                }
+
+                                                return (
+                                                    <span
+                                                        key={idx}
+                                                        className={`px-2 py-1 rounded text-xs font-mono ${className}`}
+                                                    >
+                                                        {val}
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* After Swap */}
+                                        <div className="flex gap-1 items-center">
+                                            <span className="text-xs text-muted-foreground w-20">After</span>
+                                            {step.arr.map((val, idx) => {
+                                                let className = "bg-secondary text-secondary-foreground";
+
+                                                if (idx <= step.sortedIndex) {
+                                                    className = "bg-green-200 text-green-900 font-bold"; // Sorted
+                                                }
+
+                                                return (
+                                                    <span
+                                                        key={idx}
+                                                        className={`px-2 py-1 rounded text-xs font-mono ${className}`}
+                                                    >
+                                                        {val}
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    </td>
+
                                     </tr>
                                 )
                             })}

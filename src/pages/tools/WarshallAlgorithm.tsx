@@ -239,7 +239,7 @@ const WarshallAlgorithm = () => {
                 </div>
             }
         >
-            <div className="space-y-6">
+            <div className="space-y-6" style={{overflowX: 'scroll'}}>
                 {showResults && (
                     <>
                         <div className="p-4 border rounded-lg bg-slate-50">
@@ -255,14 +255,16 @@ const WarshallAlgorithm = () => {
                             </div>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 overflow-x-auto">
                             <h3 className="font-bold text-lg">Process Iterations</h3>
-                            <div className="flex gap-4 overflow-x-auto pb-4">
+                            {/* <div className="flex md:flex-col md:w-[200px] gap-4 overflow-x-auto pb-4"> */}
+                            <div className="flex  md:flex-col gap-4 overflow-x-auto pb-4 max-w-full">    
                                 {iterations.map((iter, k) => (
                                     <div key={k} className="min-w-[200px] border p-2 rounded bg-white">
                                         <p className="text-center text-xs font-bold mb-1">
                                             {k === 0 ? "Initial" : `Step k = ${k} `}
                                         </p>
+                                        {/* <table className="w-full text-center text-xs border-collapse"> */}
                                         <table className="w-full text-center text-xs border-collapse">
                                             <tbody>
                                                 {iter.map((row, r) => (

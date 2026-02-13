@@ -113,8 +113,8 @@ function ZeroOneKnapsackProblem() {
             title="0/1 Knapsack Problem"
             description="Dynamic Programming approach where items cannot be broken. We either take an item or leave it."
             resources={[
-                { label: "Wikipedia: Knapsack Problem", url: "https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem" },
-                { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/" }
+                { label: "What is Knapsack Problem", url: "https://en.wikipedia.org/wiki/Knapsack_problem#0-1_knapsack_problem" },
+                // { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/" }
             ]}
             codeSnippet={codeSnippet}
             controls={

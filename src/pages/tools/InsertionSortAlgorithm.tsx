@@ -125,8 +125,7 @@ function InsertionSortAlgorithm() {
       title="Insertion Sort"
       description="Builds the final sorted array (or list) one item at a time. It is much less efficient on large lists than more advanced algorithms such as quicksort, heapsort, or merge sort."
       resources={[
-        { label: "Wikipedia: Insertion Sort", url: "https://en.wikipedia.org/wiki/Insertion_sort" },
-        { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+        { label: "Insertion Sort", url: "https://en.wikipedia.org/wiki/Insertion_sort" },
       ]}
       codeSnippet={codeSnippet}
       controls={

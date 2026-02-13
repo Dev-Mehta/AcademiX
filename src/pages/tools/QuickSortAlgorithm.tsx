@@ -167,8 +167,8 @@ function quickSort(arr, low, high) {
             title="Quick Sort"
             description="An efficient, in-place sorting algorithm that uses a divide-and-conquer strategy to sort elements."
             resources={[
-                { label: "Wikipedia: Quick Sort", url: "https://en.wikipedia.org/wiki/Quicksort" },
-                { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+                { label: "Quick Sort", url: "https://en.wikipedia.org/wiki/Quicksort" },
+                // { label: "Visualization", url: "https://visualgo.net/en/sorting" }
             ]}
             codeSnippet={codeSnippet}
             controls={

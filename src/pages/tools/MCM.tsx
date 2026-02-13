@@ -132,8 +132,8 @@ function MCM() {
             title="Matrix Chain Multiplication"
             description="Finds the most efficient way to multiply a given sequence of matrices. The problem is not actually to perform the multiplications, but merely to decide in which order to perform the multiplications."
             resources={[
-                { label: "Wikipedia: MCM", url: "https://en.wikipedia.org/wiki/Matrix_chain_multiplication" },
-                { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/matrix-chain-multiplication-dp-8/" }
+                { label: "What is MCM", url: "https://en.wikipedia.org/wiki/Matrix_chain_multiplication" },
+                // { label: "GeeksforGeeks", url: "https://www.geeksforgeeks.org/matrix-chain-multiplication-dp-8/" }
             ]}
             codeSnippet={codeSnippet}
             controls={
@@ -149,9 +149,23 @@ function MCM() {
                             onChange={(e) => setDimension(e.target.value)}
                         />
                         {error && <p className="text-sm text-destructive">{error}</p>}
-                        <p className="text-xs text-muted-foreground">
-                            {'Enter dimensions $p_0, p_1, ..., p_n$. This corresponds to $n$ matrices where Matrix $A_i$ is $p_{i - 1} \\times p_i$.'}
+                        <p className="text-sm text-muted-foreground">
+                            Enter dimensions&nbsp;
+                            <span className="font-mono">
+                                p<sub>0</sub>, p<sub>1</sub>, …, p<sub>n</sub>
+                            </span>
+                            . This corresponds to&nbsp;
+                            <span className="font-mono">n</span>&nbsp;matrices where&nbsp;
+                            <span className="font-mono">
+                                A<sub>i</sub>
+                            </span>
+                            &nbsp;is&nbsp;
+                            <span className="font-mono">
+                                p<sub>i−1</sub> × p<sub>i</sub>
+                            </span>
+                            .
                         </p>
+
                     </div>
                     <Button type="submit" className="w-full">
                         Calculate Min Cost

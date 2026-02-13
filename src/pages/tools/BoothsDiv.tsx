@@ -240,7 +240,7 @@ const BoothsDivisionAlgorithm = () => {
             title="Restoring Division Algorithm"
             description="A division algorithm for binary result. It operates on unsigned integers."
             resources={[
-                { label: "Wikipedia: Division Algorithm", url: "https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division" }
+                { label: "Division Algorithm", url: "https://en.wikipedia.org/wiki/Division_algorithm#Restoring_division" }
             ]}
             codeSnippet={codeSnippet}
             controls={

@@ -67,8 +67,7 @@ function BubbleSortAlgorithm() {
       title="Bubble Sort"
       description="A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order."
       resources={[
-        { label: "Wikipedia: Bubble Sort", url: "https://en.wikipedia.org/wiki/Bubble_sort" },
-        { label: "Visualization", url: "https://visualgo.net/en/sorting" }
+        { label: "Bubble Sort", url: "https://en.wikipedia.org/wiki/Bubble_sort" },
       ]}
       codeSnippet={codeSnippet}
       controls={

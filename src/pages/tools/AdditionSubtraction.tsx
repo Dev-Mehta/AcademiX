@@ -118,7 +118,7 @@ const AdditionSubtraction = () => {
             description="Visualizes binary addition of two 8-bit signed integers (Two's Complement)."
             resources={[
                 { label: "Two's Complement", url: "https://en.wikipedia.org/wiki/Two%27s_complement" },
-                { label: "Binary Arithmetic", url: "https://en.wikipedia.org/wiki/Binary_arithmetic" }
+                { label: "Binary Arithmetic", url: "https://en.wikipedia.org/wiki/Binary_number#Binary_arithmetic" }
             ]}
             controls={
                 <div className="space-y-6">

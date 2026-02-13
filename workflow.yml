@@ -1,0 +1,15 @@
+session:
+  name: academix
+
+windows:
+  - name: shell
+    cmd: zsh
+
+  - name: editor
+    cmd: nvim .
+
+  - name: backend
+    cmd: cd backend/ && source env/bin/activate && python manage.py runserver
+
+  - name: frontend
+    cmd: pnpm run dev
