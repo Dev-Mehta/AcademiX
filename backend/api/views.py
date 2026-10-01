@@ -52,8 +52,10 @@ class BoothsAlgorithm(View):
 class GetAllArticles(View):
     def get(self, request):
         articles = Article.objects.all()
-        data = [{'title': article.title, 'content': article.html, 'original-link': article.original_link} for article in articles]
+        data = [{'title': article.title, 'content': article.html, 'original-link': article.original_link, 'description': article.description} for article in articles]        
         return JsonResponse(data, safe=False)
+
+from .ai_prompts import generate_and_inject_prompts
 
 class GetArticle(View):
     def get(self, request, *args, **kwargs):
@@ -64,10 +66,46 @@ class GetArticle(View):
             return JsonResponse({'error': str(e)}, status=400)
         try:
             article = Article.objects.get(title=title)
-            data = {'title': article.title, 'content': article.html, 'original-link': article.original_link}
+            prompts = article.orbit_prompts or []
+            data = {
+                'title': article.title,
+                'content': article.html,
+                'original-link': article.original_link,
+                'prompts': prompts,
+            }
         except Article.DoesNotExist:
             data = {'error': 'Article not found', 'title': title}
         return JsonResponse(data)
+
+class GetOrGeneratePrompts(View):
+    def get(self, request, *args, **kwargs):
+        title = self.kwargs.get('title')
+        regenerate = request.GET.get('regenerate') == 'true'
+        try:
+            assert title, 'title is required'
+        except AssertionError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+        try:
+            article = Article.objects.get(title=title)
+            if article.orbit_prompts and not regenerate:
+                return JsonResponse({
+                    'title': article.title,
+                    'prompts': article.orbit_prompts,
+                })
+
+            enriched_html, prompts = generate_and_inject_prompts(article.title, article.html)
+            article.html = enriched_html
+            article.orbit_prompts = prompts
+            article.save(update_fields=['html', 'orbit_prompts'])
+            return JsonResponse({
+                'title': article.title,
+                'prompts': prompts,
+            })
+        except Article.DoesNotExist:
+            return JsonResponse({'error': 'Article not found', 'title': title}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
 class GetSimilarArticles(View):
     def get(self, request, *args, **kwargs):
@@ -114,10 +152,13 @@ class AddArticle(View):
                 # Remove elements with class .kicker.paragraph, .pw-subtitle-paragraph, .speechify-ignore
                 for element in soup.select('.kicker, .paragraph, .pw-subtitle-paragraph, .speechify-ignore, strong.al'):
                     element.decompose()
-                html = soup.find('section').prettify()
-                title = soup.title.string
-                Article.objects.create(title=title, html=html, original_link=original_link)
-                return JsonResponse({'message': 'Article added successfully'})
+                section_elem = soup.find('section')
+                html = section_elem.prettify() if section_elem else soup.prettify()
+                title = soup.title.string if soup.title else original_link.split('/')[-1]
+                # Automatically inject inline Quick Review decks into sections
+                enriched_html, prompts = generate_and_inject_prompts(title, html)
+                Article.objects.create(title=title, html=enriched_html, original_link=original_link, orbit_prompts=prompts)
+                return JsonResponse({'message': 'Article added and enriched with Quick Review decks successfully'})
             except requests.exceptions.RequestException as e:
                 return JsonResponse({'error': str(e)}, status=400)
             

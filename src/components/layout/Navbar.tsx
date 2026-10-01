@@ -12,7 +12,6 @@ const Navbar = () => {
         { title: "Home", path: "/", icon: <GraduationCap className="w-5 h-5 mr-1" /> },
         { title: "Tools", path: "/tools", icon: <Calculator className="w-5 h-5 mr-1" /> },
         { title: "Articles", path: "/articles", icon: <BookOpen className="w-5 h-5 mr-1" /> },
-        
     ];
 
     const handleToggle = () => setIsOpen(!isOpen);

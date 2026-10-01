@@ -6,7 +6,14 @@ import tailwindcss from "tailwindcss";
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    allowedHosts: ["1427-2402-a00-402-cd06-6d9f-f214-41e2-34a7.ngrok-free.app"],
+    host: true,
+    allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
   },
   css: {
     postcss: {
